@@ -1,0 +1,12 @@
+{
+  "name": "atiatts-website",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
