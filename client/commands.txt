@@ -1,0 +1,10 @@
+# Proyect creation
+
+commands cargo install create-tauri-app --locked
+cargo create-tauri-app
+cd atia-tts;
+npm install
+npm run tauri dev
+npm run tauri build
+
+target 
