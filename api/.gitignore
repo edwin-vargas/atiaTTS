@@ -1,0 +1,7 @@
+*.db
+
+/target
+Cargo.lock
+
+.idea/
+.vscode/
