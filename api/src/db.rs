@@ -187,3 +187,26 @@ pub fn check_user_plan(user_id: &str) -> Result<Option<String>> {
     // User has no plan
     Ok(None)
 }
+
+pub fn get_user_plan_type(user_id: &str) -> Result<String> {
+    let conn = ensure_db_exists()?;
+    
+    // Check if user is in PRO
+    let mut stmt = conn.prepare("SELECT 1 FROM pro WHERE user_id = ?1")?;
+    let is_pro = stmt.exists(params![user_id])?;
+    
+    if is_pro {
+        return Ok("PRO".to_string());
+    }
+    
+    // Check if user is in PLUS
+    let mut stmt = conn.prepare("SELECT 1 FROM plus WHERE user_id = ?1")?;
+    let is_plus = stmt.exists(params![user_id])?;
+    
+    if is_plus {
+        return Ok("PLUS".to_string());
+    }
+    
+    // User has no plan
+    Ok("FREE".to_string())
+}

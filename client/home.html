@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        #userInfo {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            margin: 10px 0;
+        }
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .dropzone:hover {
+            background-color: #f0f0f0;
+            border-color: #aaa;
+        }
+        .audio-list {
+            margin-top: 20px;
+        }
+        .audio-item {
+            margin-bottom: 10px;
+        }
+        .logout-btn {
+            background-color: #f44336;
+            margin-top: 20px;
+        }
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="userInfo">
+        <h1>Text to Speech Service</h1>
+        <p><strong>Welcome, </strong><span id="welcomeUserName"></span>!</p>
+        <p><strong>Plan: </strong><span id="userPlan"></span></p>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+    
+    <div class="container">
+        <div class="card" id="plusFeature">
+            <h2>Convert Text to Speech</h2>
+            <textarea id="textInput" rows="6" placeholder="Enter text to convert to speech..."></textarea>
+            <button id="convertBtn">Convert to Speech</button>
+            <div id="convertMessage"></div>
+        </div>
+        
+        <div class="card hidden" id="proFeature">
+            <h2>Convert Text Files to Speech</h2>
+            <div class="dropzone" id="dropzone">
+                <p>Drag & Drop up to 5 text files here</p>
+                <p>or</p>
+                <button id="browseBtn">Browse Files</button>
+                <input type="file" id="fileInput" accept=".txt" multiple>
+            </div>
+            <div id="uploadMessage"></div>
+        </div>
+        
+        <div class="card">
+            <h2>Your Audio Files</h2>
+            <div class="audio-list" id="audioList">
+                <p>No audio files yet. Convert some text to get started!</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check if user is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!user) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            // Display user info
+            document.getElementById('welcomeUserName').textContent = user.user_name;
+            document.getElementById('userPlan').textContent = user.plan || 'PLUS';
+            
+            // Show PRO features if applicable
+            if (user.plan === 'PRO') {
+                document.getElementById('proFeature').classList.remove('hidden');
+            }
+        });
+        
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('user');
+            window.location.href = '/index.html';
+        });
+        
+        // Text to speech conversion
+        document.getElementById('convertBtn').addEventListener('click', async function() {
+            const text = document.getElementById('textInput').value.trim();
+            const user = JSON.parse(localStorage.getItem('user'));
+            const convertMessage = document.getElementById('convertMessage');
+            
+            if (!text) {
+                convertMessage.className = 'error';
+                convertMessage.textContent = 'Please enter some text';
+                return;
+            }
+            
+            convertMessage.className = '';
+            convertMessage.textContent = 'Converting...';
+            
+            try {
+                const response = await fetch('/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.user_id,
+                        text: text
+                    })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    
+                    // Add audio player to the list
+                    addAudioToList(audioUrl, 'Text conversion');
+                    
+                    convertMessage.className = 'success';
+                    convertMessage.textContent = 'Conversion successful!';
+                } else {
+                    const data = await response.json();
+                    convertMessage.className = 'error';
+                    convertMessage.textContent = data.error || 'Conversion failed';
+                }
+            } catch (error) {
+                convertMessage.className = 'error';
+                convertMessage.textContent = 'An error occurred during conversion';
+                console.error('Conversion error:', error);
+            }
+        });
+        
+        // File upload functionality for PRO users
+        if (document.getElementById('proFeature')) {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('fileInput');
+            const browseBtn = document.getElementById('browseBtn');
+            const uploadMessage = document.getElementById('uploadMessage');
+            
+            // Open file browser
+            browseBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            // Highlight drop area when item is dragged over
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropzone.style.borderColor = '#4CAF50';
+                dropzone.style.backgroundColor = '#e9f7ef';
+            }
+            
+            function unhighlight() {
+                dropzone.style.borderColor = '#ccc';
+                dropzone.style.backgroundColor = '';
+            }
+            
+            // Handle dropped files
+            dropzone.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            });
+            
+            function handleFiles(files) {
+                if (files.length > 5) {
+                    uploadMessage.className = 'error';
+                    uploadMessage.textContent = 'Maximum 5 files allowed';
+                    return;
+                }
+                
+                // Check if all files are .txt
+                for (let i = 0; i < files.length; i++) {
+                    if (!files[i].name.toLowerCase().endsWith('.txt')) {
+                        uploadMessage.className = 'error';
+                        uploadMessage.textContent = 'Only .txt files are allowed';
+                        return;
+                    }
+                }
+                
+                uploadFiles(files);
+            }
+            
+            async function uploadFiles(files) {
+                const user = JSON.parse(localStorage.getItem('user'));
+                
+                uploadMessage.className = '';
+                uploadMessage.textContent = 'Uploading and converting...';
+                
+                const formData = new FormData();
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('file', files[i]);
+                }
+                
+                try {
+                    const response = await fetch(`/upload?user_id=${user.user_id}&plan=2`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        // Parse multipart response
+                        const contentType = response.headers.get('Content-Type');
+                        if (contentType && contentType.includes('multipart/mixed')) {
+                            const blob = await response.blob();
+                            processMultipartBlob(blob, contentType);
+                            
+                            uploadMessage.className = 'success';
+                            uploadMessage.textContent = 'Files converted successfully!';
+                        } else {
+                            uploadMessage.className = 'error';
+                            uploadMessage.textContent = 'Error processing server response';
+                        }
+                    } else {
+                        const data = await response.json();
+                        uploadMessage.className = 'error';
+                        uploadMessage.textContent = data.error || 'Conversion failed';
+                    }
+                } catch (error) {
+                    uploadMessage.className = 'error';
+                    uploadMessage.textContent = 'An error occurred during file processing';
+                    console.error('File processing error:', error);
+                }
+            }
+            
+            function processMultipartBlob(blob, contentType) {
+                // Extract boundary from content type
+                const boundaryMatch = contentType.match(/boundary=([^;]+)/i);
+                if (!boundaryMatch) return;
+                
+                const boundary = boundaryMatch[1];
+                
+                // Use FileReader to get blob as text
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const text = reader.result;
+                    const parts = parseMultipartMixed(text, boundary);
+                    
+                    // Process each part
+                    parts.forEach((part, index) => {
+                        if (part.blob) {
+                            const audioUrl = URL.createObjectURL(part.blob);
+                            addAudioToList(audioUrl, part.filename || `File ${index + 1}`);
+                        }
+                    });
+                };
+                reader.readAsText(blob);
+            }
+            
+            function parseMultipartMixed(text, boundary) {
+                const parts = [];
+                const boundaryRegex = new RegExp(`--${boundary}(?:--)?[\\r\\n]*`, 'g');
+                const sections = text.split(boundaryRegex).filter(Boolean);
+                
+                sections.forEach(section => {
+                    const headerBodySplit = section.split(/\r?\n\r?\n/, 2);
+                    if (headerBodySplit.length === 2) {
+                        const headers = headerBodySplit[0];
+                        const body = headerBodySplit[1];
+                        
+                        // Extract filename
+                        const filenameMatch = headers.match(/filename="([^"]+)"/i);
+                        const filename = filenameMatch ? filenameMatch[1] : null;
+                        
+                        // Create blob from body text
+                        const blob = new Blob([body], { type: 'audio/wav' });
+                        
+                        parts.push({ filename, blob });
+                    }
+                });
+                
+                return parts;
+            }
+        }
+        
+        // Add audio player to the list
+        function addAudioToList(audioUrl, title) {
+            const audioList = document.getElementById('audioList');
+            
+            // Remove initial message if present
+            if (audioList.querySelector('p')) {
+                audioList.innerHTML = '';
+            }
+            
+            const audioItem = document.createElement('div');
+            audioItem.className = 'audio-item';
+            
+            const audioTitle = document.createElement('p');
+            audioTitle.textContent = title;
+            
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = audioUrl;
+            
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = audioUrl;
+            downloadBtn.download = `${title.replace(/\s+/g, '_')}.wav`;
+            downloadBtn.textContent = 'Download';
+            downloadBtn.style.marginLeft = '10px';
+            
+            audioItem.appendChild(audioTitle);
+            audioItem.appendChild(audio);
+            audioItem.appendChild(downloadBtn);
+            
+            audioList.insertBefore(audioItem, audioList.firstChild);
+        }
+    </script>
+</body>
+</html>
