@@ -45,10 +45,12 @@
 
     <div id="file" class="tab-content">
       <div class="panel">
-        <label class="dropzone" id="dropzone">
-          Arrastra y suelta un archivo aquí o haz clic para seleccionar
-          <input type="file" id="fileInput" accept=".txt,.pdf" />
-        </label>
+        <div class="upload-area" id="dropzone">
+          <p>Arrastra y suelta tus archivos aquí o haz clic para seleccionar.</p>
+          <input type="file" id="file-input" class="hidden-file-input" multiple />
+          <ul id="file-list"></ul>
+        </div>
+        
         <div class="controls">
           <button onclick="convertFile()">Convertir</button>
         </div>
