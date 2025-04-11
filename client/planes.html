@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seleccionar Planes - TAVAWA</title>
+  <style>
+    /* Reset general */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Fondo gris claro y centro */
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Encabezado */
+    header {
+      background-color: #111;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Contenedor de planes */
+    .plans-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      flex-direction: column;
+    }
+
+    .plans-title {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #111;
+    }
+
+    .plans {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .plan-card {
+      background-color: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .plan-card h3 {
+      font-size: 1.5rem;
+      color: #111;
+      margin-bottom: 1rem;
+    }
+
+    .plan-card p {
+      font-size: 1rem;
+      color: #777;
+      margin-bottom: 1.5rem;
+    }
+
+    .plan-card .price {
+      font-size: 1.8rem;
+      color: #111;
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+    }
+
+    .plan-card button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background-color: #111;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .plan-card button:hover {
+      background-color: #333;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #777;
+      background-color: #f5f5f5;
+    }
+
+    /* Estilos para el modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .modal-content h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content p {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-button {
+      padding: 0.75rem 1.5rem;
+      background-color: #111;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal-button:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">TAVAWA</div>
+  </header>
+
+  <div class="plans-container">
+    <div class="plans-title">Elige tu plan</div>
+    <div class="plans">
+      <!-- Plan 1 -->
+      <div class="plan-card">
+        <h3>Plan Básico</h3>
+        <p>Acceso a funcionalidades básicas</p>
+        <div class="price">$10/mes</div>
+        <button onclick="selectPlan('basic')">Seleccionar</button>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="plan-card">
+        <h3>Plan Avanzado</h3>
+        <p>Acceso a funcionalidades avanzadas</p>
+        <div class="price">$20/mes</div>
+        <button onclick="selectPlan('advanced')">Seleccionar</button>
+      </div>
+
+      <!-- Plan 3 -->
+      <div class="plan-card">
+        <h3>Plan Premium</h3>
+        <p>Acceso completo a todas las funcionalidades</p>
+        <div class="price">$30/mes</div>
+        <button onclick="selectPlan('premium')">Seleccionar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 TAVAWA. Todos los derechos reservados.
+  </footer>
+
+  <!-- Modal de confirmación -->
+  <div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+      <h3>¡Gracias por elegir tu plan!</h3>
+      <p>Serás redirigido a la página principal en breve.</p>
+      <button class="modal-button" onclick="redirectToHome()">Aceptar</button>
+    </div>
+  </div>
+
+  <script>
+    // Función para redirigir a la página principal después de seleccionar un plan
+    function selectPlan(plan) {
+      // Muestra el modal de confirmación
+      document.getElementById("confirmation-modal").style.display = "flex";
+
+      // Aquí puedes agregar lógica adicional si es necesario (como guardar el plan en localStorage)
+
+      // Redirigir después de 3 segundos (para mostrar el mensaje)
+      setTimeout(function() {
+        redirectToHome();
+      }, 3000); // Espera 3 segundos antes de redirigir
+    }
+
+    // Función para redirigir a la página principal
+    function redirectToHome() {
+      window.location.href = "principal.html"; // Asegúrate de cambiar esta URL a la correcta
+    }
+  </script>
+</body>
+</html>
