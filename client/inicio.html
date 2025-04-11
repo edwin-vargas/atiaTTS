@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Iniciar sesión - TAVAWA</title>
   <link rel="stylesheet" href="inicio.css" />
+  <style>
+    /* Estilos del mensaje de éxito */
+    .success-message {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4CAF50;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      display: none;
+      animation: fadeIn 1s forwards;
+      z-index: 1000;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(-10px) translateX(-50%); }
+      100% { opacity: 1; transform: translateY(0) translateX(-50%); }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -21,12 +43,37 @@
         <p class="registro">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
       </form>
     </div>
+
+    <!-- Mensaje de éxito -->
+    <div id="successMessage" class="success-message">
+      ¡Inicio de sesión exitoso! Redirigiendo...
+    </div>
   </main>
 
   <footer>
     © 2025 TAVAWA. Todos los derechos reservados.
   </footer>
 
-  <script src="inicio.js"></script>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.querySelector('input[type="email"]').value.trim();
+      const password = document.querySelector('input[type="password"]').value.trim();
+
+      if (!email || !password) {
+        alert("Por favor, completa todos los campos.");
+        return;
+      }
+
+      const successMessage = document.getElementById("successMessage");
+      successMessage.style.display = "block";
+
+      setTimeout(() => {
+        successMessage.style.display = "none";
+        window.location.href = "principal.html"; // Tu página principal
+      }, 2000);
+    });
+  </script>
 </body>
 </html>

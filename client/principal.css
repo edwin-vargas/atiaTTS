@@ -251,5 +251,13 @@
     font-size: 0.9rem;
     color: #333;
   }
+  nav a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
   
   
