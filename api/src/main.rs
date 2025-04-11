@@ -1,64 +1,120 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
-use uuid::Uuid;
-use serde::Serialize;
-use rusqlite::{params, Connection, Result};
+use actix_files as fs;
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use serde::{Deserialize, Serialize};
+// use uuid::Uuid;
 
-#[derive(Serialize)]  
+mod db;
+
+#[derive(Deserialize)]
+struct SignupRequest {
+    user_name: String,
+    user_email: String,
+    user_pass: String,
+}
+
+#[derive(Deserialize)]
+struct SigninRequest {
+    user_email: String,
+    user_pass: String,
+}
+
+#[derive(Deserialize)]
+struct PlanRequest {
+    user_id: String,
+    plan: i32,
+}
+
+#[derive(Serialize)]
 struct UserResponse {
-    id: String,
+    user_id: String,
+    user_name: String,
+    user_email: String,
 }
 
-fn init_db() -> Result<Connection> {
-    let conn = Connection::open("users.db")?;
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY
-        )",
-        [],
-    )?;
-    Ok(conn)
+#[derive(Serialize)]
+struct SignupResponse {
+    user_id: String,
+    success: bool,
 }
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hola")
+#[derive(Serialize)]
+struct ErrorResponse {
+    error: String,
 }
 
-#[get("/user")]
-async fn post_user() -> impl Responder {
-    let uuid = Uuid::new_v4();
-    
-    let conn = match init_db() {
-        Ok(c) => c,
-        Err(_) => return HttpResponse::InternalServerError().body("Failed to open DB"),
-    };
+#[derive(Serialize)]
+struct SuccessResponse {
+    success: bool,
+}
 
-    let insert_result = conn.execute(
-        "INSERT INTO users (id) VALUES (?1)",
-        params![uuid.to_string()],
-    );
-
-    match insert_result {
-        Ok(_) => {
-            let response = UserResponse {
-                id: uuid.to_string(),
-            };
-            HttpResponse::Ok().json(response)
+async fn create_user(data: web::Json<SignupRequest>) -> impl Responder {
+    match db::insert_user(&data.user_name, &data.user_email, &data.user_pass) {
+        Ok(user_id) => {
+            HttpResponse::Ok().json(SignupResponse {
+                user_id,
+                success: true,
+            })
         }
-        Err(_) => HttpResponse::InternalServerError().body("Failed to insert user"),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to create user: {}", e),
+            })
+        }
     }
+}
 
+async fn signin(data: web::Json<SigninRequest>) -> impl Responder {
+    match db::get_user_by_email_pass(&data.user_email, &data.user_pass) {
+        Ok(user) => {
+            HttpResponse::Ok().json(UserResponse {
+                user_id: user.user_id,
+                user_name: user.user_name,
+                user_email: user.user_email,
+            })
+        }
+        Err(_) => {
+            HttpResponse::Unauthorized().json(ErrorResponse {
+                error: "Invalid email or password".to_string(),
+            })
+        }
+    }
+}
+
+async fn update_plan(data: web::Json<PlanRequest>) -> impl Responder {
+    match db::add_user_to_plan(&data.user_id, data.plan) {
+        Ok(_) => {
+            HttpResponse::Ok().json(SuccessResponse {
+                success: true,
+            })
+        }
+        Err(e) => {
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to update plan: {}", e),
+            })
+        }
+    }
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Server >> http://localhost:3000");
+    // Ensure database exists with all required tables
+    if let Err(e) = db::ensure_db_exists() {
+        eprintln!("Database initialization failed: {}", e);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "Database initialization failed"));
+    }
+    
+    println!("Server starting on http://127.0.0.1:8080");
+    
     HttpServer::new(|| {
         App::new()
-            .service(hello)
-            .service(post_user)
+            // API routes
+            .route("/user", web::post().to(create_user))
+            .route("/signin", web::post().to(signin))
+            .route("/plan", web::post().to(update_plan))
+            // Serve static files from the ../client directory
+            .service(fs::Files::new("/", "../client").index_file("indigo.html"))
     })
-    .bind(("0.0.0.0", 3000))?
+    .bind("127.0.0.1:8080")?
     .run()
     .await
 }

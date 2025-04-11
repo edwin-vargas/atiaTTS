@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        #userInfo {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Management System</h1>
+    
+    <div class="container">
+        <div class="card" id="signupCard">
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <input type="text" id="signupName" placeholder="Name" required>
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <div id="signupMessage"></div>
+        </div>
+        
+        <div class="card" id="signinCard">
+            <h2>Sign In</h2>
+            <form id="signinForm">
+                <input type="email" id="signinEmail" placeholder="Email" required>
+                <input type="password" id="signinPassword" placeholder="Password" required>
+                <button type="submit">Sign In</button>
+            </form>
+            <div id="signinMessage"></div>
+        </div>
+    </div>
+    
+    <div id="userInfo" class="hidden">
+        <h2>User Information</h2>
+        <p><strong>User ID:</strong> <span id="userId"></span></p>
+        <p><strong>Name:</strong> <span id="userName"></span></p>
+        <p><strong>Email:</strong> <span id="userEmail"></span></p>
+        
+        <h3>Choose a Plan</h3>
+        <button id="plusPlan">PLUS Plan</button>
+        <button id="proPlan">PRO Plan</button>
+        <div id="planMessage"></div>
+    </div>
+    
+    <script>
+        // Signup form submission
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const signupMessage = document.getElementById('signupMessage');
+            
+            try {
+                const response = await fetch('/user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_name: document.getElementById('signupName').value,
+                        user_email: document.getElementById('signupEmail').value,
+                        user_pass: document.getElementById('signupPassword').value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    signupMessage.className = 'success';
+                    signupMessage.textContent = `Successfully registered! Your user ID is: ${data.user_id}`;
+                    document.getElementById('signupForm').reset();
+                } else {
+                    signupMessage.className = 'error';
+                    signupMessage.textContent = data.error || 'Failed to sign up';
+                }
+            } catch (error) {
+                signupMessage.className = 'error';
+                signupMessage.textContent = 'An error occurred during sign up';
+                console.error('Sign up error:', error);
+            }
+        });
+        
+        // Signin form submission
+        document.getElementById('signinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const signinMessage = document.getElementById('signinMessage');
+            
+            try {
+                const response = await fetch('/signin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_email: document.getElementById('signinEmail').value,
+                        user_pass: document.getElementById('signinPassword').value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    signinMessage.className = 'success';
+                    signinMessage.textContent = 'Signed in successfully!';
+                    
+                    // Show user info and update fields
+                    document.getElementById('userId').textContent = data.user_id;
+                    document.getElementById('userName').textContent = data.user_name;
+                    document.getElementById('userEmail').textContent = data.user_email;
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    
+                    // Store user ID for plan selection
+                    window.currentUserId = data.user_id;
+                    
+                    document.getElementById('signinForm').reset();
+                } else {
+                    signinMessage.className = 'error';
+                    signinMessage.textContent = data.error || 'Invalid email or password';
+                }
+            } catch (error) {
+                signinMessage.className = 'error';
+                signinMessage.textContent = 'An error occurred during sign in';
+                console.error('Sign in error:', error);
+            }
+        });
+        
+        // Plan selection handlers
+        document.getElementById('plusPlan').addEventListener('click', () => selectPlan(1, 'PLUS'));
+        document.getElementById('proPlan').addEventListener('click', () => selectPlan(2, 'PRO'));
+        
+        async function selectPlan(planId, planName) {
+            if (!window.currentUserId) {
+                alert('Please sign in first');
+                return;
+            }
+            
+            const planMessage = document.getElementById('planMessage');
+            
+            try {
+                const response = await fetch('/plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: window.currentUserId,
+                        plan: planId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    planMessage.className = 'success';
+                    planMessage.textContent = `Successfully subscribed to ${planName} plan!`;
+                } else {
+                    planMessage.className = 'error';
+                    planMessage.textContent = data.error || 'Failed to update plan';
+                }
+            } catch (error) {
+                planMessage.className = 'error';
+                planMessage.textContent = 'An error occurred while updating plan';
+                console.error('Plan update error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
