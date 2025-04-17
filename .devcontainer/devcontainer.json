@@ -1,0 +1,14 @@
+{
+	"name": "Rust",
+    //or can be a docker file, not yet there
+	"image": "mcr.microsoft.com/devcontainers/rust:1-1-bullseye",
+	"mounts": [
+		{
+			"source": "devcontainer-cargo-cache-${devcontainerId}",
+			"target": "/usr/local/cargo",
+			"type": "volume"
+		}
+	],
+	"forwardPorts": [5566]
+
+}
