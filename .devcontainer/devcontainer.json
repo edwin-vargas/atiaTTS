@@ -9,6 +9,7 @@
 			"type": "volume"
 		}
 	],
-	"forwardPorts": [5566]
+	"forwardPorts": [5566, 5567, 5568],
+	"postCreateCommand": "rustc --version && cd api && cargo build && cargo run"
 
 }

@@ -297,7 +297,7 @@ async fn main() -> std::io::Result<()> {
         return Err(std::io::Error::new(std::io::ErrorKind::Other, "Database initialization failed"));
     }
     
-    println!("Server starting on http://127.0.0.1:8080");
+    println!("Server on http://127.0.0.1:5566");
     
     HttpServer::new(|| {
         App::new()
@@ -310,7 +310,7 @@ async fn main() -> std::io::Result<()> {
             // Serve static files from the ../client directory
             .service(fs::Files::new("/", "../client").index_file("indigo.html"))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("127.0.0.1:5566")?
     .run()
     .await
 }
