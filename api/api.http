@@ -1,2 +1,9 @@
-### get a userID
-GET http://localhost:3000/user HTTP/1.1
+    ### Use a application
+    POST http://127.0.0.1:5566/user HTTP/1.1
+    Content-Type: application/json
+
+    {
+    "user_name": "edwin",
+    "user_email": "user@example.com",
+    "user_pass": "pass123"
+    }

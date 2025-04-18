@@ -119,7 +119,7 @@
             const signupMessage = document.getElementById('signupMessage');
             
             try {
-                const response = await fetch('/user', {
+                const response = await fetch('http://127.0.0.1:5566/user', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -152,7 +152,7 @@
             const signinMessage = document.getElementById('signinMessage');
             
             try {
-                const response = await fetch('/signin', {
+                const response = await fetch('http://127.0.0.1:5566/signin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -212,7 +212,7 @@
             const planMessage = document.getElementById('planMessage');
             
             try {
-                const response = await fetch('/plan', {
+                const response = await fetch('http://127.0.0.1:5566/plan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
