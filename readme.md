@@ -5,7 +5,7 @@ Aqui puedes ver los datos necesarios para realizar cada fetch y los nombres que 
 Todos los valores deben de ir en el body de la request/solicitud/fetch.
 
 > [!IMPORTANT]
-> Debes tener instalada la extensión [REST Client](https://marketplace.visualstudio.com/items/?itemName=humao.rest-client)
+> Instalar la extensión [REST Client](https://marketplace.visualstudio.com/items/?itemName=humao.rest-client)
 
 ## Levantar el servidor
 
