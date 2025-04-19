@@ -6,25 +6,25 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
 
       const inputs = registroForm.querySelectorAll("input");
-      const nombre = inputs[0].value.trim();
-      const correo = inputs[1].value.trim();
-      const contraseña = inputs[2].value.trim();
+      const user_name = inputs[0].value.trim();
+      const user_email = inputs[1].value.trim();
+      const user_pass = inputs[2].value.trim();
 
-      if (!nombre || !correo || !contraseña) {
+      if (!user_name || !user_email || !user_pass) {
         alert("Por favor completa todos los campos.");
         return;
       }
 
       try {
-        const response = await fetch("https://gmq17x09-5566.usw3.devtunnels.ms/user", {
+        const response = await fetch("http://localhost:5566/user", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            nombre,
-            correo,
-            contraseña
+            user_name,
+            user_email,
+            user_pass
           })
         });
 

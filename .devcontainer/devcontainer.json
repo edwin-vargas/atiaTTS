@@ -16,7 +16,8 @@
 			"extensions": [
 				"alexcvzz.vscode-sqlite",
 				"qwtel.sqlite-viewer",
-				"rust-lang.rust-analyzer"
+				"rust-lang.rust-analyzer",
+				"ms-vsliveshare.vsliveshare"
 			]
 		}
 	}

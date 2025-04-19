@@ -1,9 +1,11 @@
 use actix_web::{
     web, 
     App, 
-    HttpServer
+    HttpServer,
+    middleware::Logger
 };
 use actix_files as fs;
+use actix_cors::Cors;
 
 mod db;
 mod tts_api;  
@@ -29,6 +31,14 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .wrap(Logger::default())
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                    .allowed_headers(vec!["Content-Type"])
+                    .max_age(3600),
+            )
             
             // API Rutas de combis
             
@@ -37,7 +47,7 @@ async fn main() -> std::io::Result<()> {
             .route("/plan", web::post().to(update_plan))
             .route("/tts", web::post().to(text_to_speech))
             //.route("/upload", web::post().to(upload_files))
-            .service(fs::Files::new("/", "../client").index_file("indigo.html"))
+            .service(fs::Files::new("/", "../client").index_file("inicio.html"))
     })
     .bind("127.0.0.1:5566")?
     .run()
