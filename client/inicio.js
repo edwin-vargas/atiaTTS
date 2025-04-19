@@ -1,10 +1,10 @@
 document.getElementById("loginForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const email = document.querySelector('input[type="email"]').value.trim();
-  const password = document.querySelector('input[type="password"]').value.trim();
+  const user_email = document.querySelector('input[type="email"]').value.trim();
+  const user_pass = document.querySelector('input[type="password"]').value.trim();
 
-  if (!email || !password) {
+  if (!user_email || !user_pass) {
     showMessage("Por favor, completa todos los campos.", false);
     return;
   }
