@@ -54,26 +54,7 @@
     © 2025 TAVAWA. Todos los derechos reservados.
   </footer>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const email = document.querySelector('input[type="email"]').value.trim();
-      const password = document.querySelector('input[type="password"]').value.trim();
-
-      if (!email || !password) {
-        alert("Por favor, completa todos los campos.");
-        return;
-      }
-
-      const successMessage = document.getElementById("successMessage");
-      successMessage.style.display = "block";
-
-      setTimeout(() => {
-        successMessage.style.display = "none";
-        window.location.href = "principal.html"; // Tu página principal
-      }, 2000);
-    });
-  </script>
+  <script src="inicio.js"></script>
+  
 </body>
 </html>

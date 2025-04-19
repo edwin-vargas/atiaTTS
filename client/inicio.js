@@ -3,21 +3,41 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
 
   const email = document.querySelector('input[type="email"]').value.trim();
   const password = document.querySelector('input[type="password"]').value.trim();
-  const messageBox = document.getElementById("loginMessage");
 
   if (!email || !password) {
     showMessage("Por favor, completa todos los campos.", false);
     return;
   }
 
-  // Aquí podrías agregar más validaciones si deseas
-  // Por ahora, simulamos un login correcto
-  showMessage("Inicio de sesión exitoso, redirigiendo...", true);
+  // Enviar datos al backend con fetch
+  fetch("https://gmq17x09-5566.usw3.devtunnels.ms/signin", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user_email: email,
+      user_pass: password
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Credenciales inválidas o error en el servidor.");
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Respuesta del backend:", data);
+    showMessage("Inicio de sesión exitoso, redirigiendo...", true);
 
-  // Redirigir después de un pequeño delay
-  setTimeout(() => {
-    window.location.href = "principal.html"; // Cambia esto según tu estructura
-  }, 2000);
+    setTimeout(() => {
+      window.location.href = "principal.html";
+    }, 2000);
+  })
+  .catch(error => {
+    console.error("Error al iniciar sesión:", error);
+    showMessage("Error al iniciar sesión. Verifica tu correo y contraseña.", false);
+  });
 });
 
 // Función para mostrar el mensaje animado
@@ -31,12 +51,8 @@ function showMessage(text, success = true) {
   }
 
   box.textContent = text;
-  box.className = `login-message ${success ? "success" : "error"}`;
+  box.className = `login-message ${success ? "success" : "error"} show`;
 
-  // Animación de entrada
-  box.classList.add("show");
-
-  // Ocultar después de unos segundos
   setTimeout(() => {
     box.classList.remove("show");
   }, 3500);

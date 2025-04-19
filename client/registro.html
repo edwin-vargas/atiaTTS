@@ -156,9 +156,10 @@
     <div class="register-box">
       <h2>Crear cuenta</h2>
       <form id="registroForm">
-        <input type="text" placeholder="Nombre completo" required />
-        <input type="email" placeholder="Correo electrónico" required />
-        <input type="password" placeholder="Contraseña" required />
+        <input id="nombre" type="text" placeholder="Nombre completo" required />
+        <input id="correo" type="email" placeholder="Correo electrónico" required />
+        <input id="password" type="password" placeholder="Contraseña" required />
+
         <button type="submit">Registrarse</button>
       </form>
       <div class="login-link">
@@ -170,19 +171,6 @@
   <footer>
     &copy; 2025 TAVAWA. Todos los derechos reservados.
   </footer>
-
-  <script>
-    document.getElementById("registroForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const successMessage = document.getElementById("successMessage");
-      successMessage.style.display = "block";
-
-      setTimeout(() => {
-        successMessage.style.display = "none";
-        window.location.href = "planes.html";
-      }, 2000);
-    });
-  </script>
+  <script src="registro.js"></script>
 </body>
 </html>
