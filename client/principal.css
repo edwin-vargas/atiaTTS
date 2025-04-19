@@ -259,5 +259,10 @@
   nav a:hover {
     text-decoration: underline;
   }
-  
+  /* Estilo al arrastrar archivos al dropzone */
+.dragover-highlight {
+  border-color: #4CAF50 !important;
+  background-color: #e9f7ef !important;
+}
+
   
