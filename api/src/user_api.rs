@@ -15,7 +15,7 @@ use actix_web::{
     Responder
 };
 
-// User Management Endpoints
+// User management endpoints
 
 pub async fn create_user(data: web::Json<SignupRequest>) -> impl Responder {
     match user_db::insert_user(&data.user_name, &data.user_email, &data.user_pass) {
@@ -27,7 +27,7 @@ pub async fn create_user(data: web::Json<SignupRequest>) -> impl Responder {
         }
         Err(e) => {
             HttpResponse::InternalServerError().json(ErrorResponse {
-                error: format!("Failed to create user: {}", e),
+                error: format!("Fallo al crear: {}", e),
             })
         }
     }

@@ -18,7 +18,7 @@ use user_api::{
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
-    // A dónde sin DB?
+    // ¿A dónde sin DB?
     
     if let Err(e) = db::ensure_db_exists() {
         eprintln!("Database initialization failed: {}", e);
