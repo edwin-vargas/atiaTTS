@@ -1,0 +1,13 @@
+[package]
+name = "file"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix = "0.13"
+actix-web = "4"
+actix-web-actors = "4.1" # Use 4.1 or later for ws::Message::Binary(Bytes)
+env_logger = "0.11"
+log = "0.4"
+bytes = "1" # Needed for ws::Message::Binary
+actix-files = "0.6.6"

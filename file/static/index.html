@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket File Sender</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #status { margin-top: 15px; font-style: italic; }
+        #fileInput { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Send File Content via WebSocket</h1>
+
+    <input type="file" id="fileInput">
+    <button id="sendButton" disabled>Send File</button>
+
+    <div id="status">Connecting to WebSocket...</div>
+    <div id="messages">
+        <h2>Server Messages:</h2>
+        <ul id="messageList"></ul>
+    </div>
+
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const sendButton = document.getElementById('sendButton');
+        const statusDiv = document.getElementById('status');
+        const messageList = document.getElementById('messageList');
+        let websocket = null;
+        let selectedFile = null;
+
+        function connectWebSocket() {
+            // Use ws:// for http, wss:// for https
+            const wsUrl = `ws://${window.location.host}/ws`;
+            websocket = new WebSocket(wsUrl);
+
+            websocket.onopen = () => {
+                statusDiv.textContent = 'WebSocket Connected. Select a file.';
+                sendButton.disabled = true; // Enable button only when file is selected
+                console.log('WebSocket connection established');
+            };
+
+            websocket.onmessage = (event) => {
+                console.log('Message from server:', event.data);
+                const li = document.createElement('li');
+                li.textContent = event.data;
+                messageList.appendChild(li);
+                // Re-enable button after processing response
+                sendButton.disabled = (selectedFile === null);
+            };
+
+            websocket.onerror = (error) => {
+                statusDiv.textContent = 'WebSocket Error!';
+                console.error('WebSocket Error:', error);
+                sendButton.disabled = true;
+            };
+
+            websocket.onclose = (event) => {
+                statusDiv.textContent = 'WebSocket Closed. Refresh to reconnect.';
+                console.log('WebSocket connection closed:', event);
+                sendButton.disabled = true;
+                websocket = null; // Allow reconnect attempt
+                 // Optional: try to reconnect automatically
+                 // setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        fileInput.onchange = (event) => {
+            selectedFile = event.target.files[0];
+            if (selectedFile && websocket && websocket.readyState === WebSocket.OPEN) {
+                statusDiv.textContent = `File selected: ${selectedFile.name}`;
+                sendButton.disabled = false;
+            } else if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                 statusDiv.textContent = 'WebSocket not connected. Cannot send file.';
+                 sendButton.disabled = true;
+            } else {
+                selectedFile = null;
+                statusDiv.textContent = 'No file selected.';
+                sendButton.disabled = true;
+            }
+        };
+
+        sendButton.onclick = () => {
+            if (!selectedFile) {
+                alert('Please select a file first.');
+                return;
+            }
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                alert('WebSocket is not connected.');
+                return;
+            }
+
+            sendButton.disabled = true; // Disable button during sending
+            statusDiv.textContent = `Sending ${selectedFile.name}...`;
+
+            // 1. Send the filename as a text message
+            websocket.send(selectedFile.name);
+            console.log(`Sent filename: ${selectedFile.name}`);
+
+            // 2. Read the file content as ArrayBuffer
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // 3. Send the file content as a binary message
+                websocket.send(e.target.result); // Send ArrayBuffer directly
+                console.log(`Sent ${e.target.result.byteLength} bytes of file data.`);
+                statusDiv.textContent = `Sent ${selectedFile.name}. Waiting for server response...`;
+                // Keep button disabled until server confirms processing via onmessage
+            };
+            reader.onerror = (e) => {
+                 console.error("FileReader error:", e);
+                 statusDiv.textContent = `Error reading file: ${selectedFile.name}`;
+                 sendButton.disabled = false; // Re-enable on error
+            }
+            reader.readAsArrayBuffer(selectedFile);
+        };
+
+        // Initial connection attempt
+        connectWebSocket();
+
+    </script>
+</body>
+</html>

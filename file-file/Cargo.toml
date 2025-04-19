@@ -1,0 +1,15 @@
+[package]
+name = "file-file"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix = "0.13"
+actix-web = "4"
+actix-web-actors = "4.1"
+actix-files = "0.6" # Ensure you have actix-files
+env_logger = "0.11"
+log = "0.4"
+bytes = "1"
+uuid = { version = "1.8", features = ["v4"] } # Add uuid crate
+tokio = { version = "1", features = ["fs"] } # Optional for async file IO (alternative to web::block + std::fs)
