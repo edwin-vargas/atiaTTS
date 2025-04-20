@@ -1,122 +1,238 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>WebSocket File Sender</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Text-to-Speech (espeak)</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        #status { margin-top: 15px; font-style: italic; }
-        #fileInput { margin-bottom: 10px; }
+        body { font-family: sans-serif; margin: 20px; }
+        #drop-area { border: 2px dashed #ccc; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 15px; }
+        #drop-area.highlight { border-color: purple; }
+        #file-list { margin-bottom: 15px; }
+        #audio-outputs { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .audio-item { margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;}
+        .audio-item p { margin: 0 0 5px 0; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Send File Content via WebSocket</h1>
+    <h1>WebSocket Text-to-Speech (con espeak)</h1>
 
-    <input type="file" id="fileInput">
-    <button id="sendButton" disabled>Send File</button>
+    <div id="status">Desconectado</div>
 
-    <div id="status">Connecting to WebSocket...</div>
-    <div id="messages">
-        <h2>Server Messages:</h2>
-        <ul id="messageList"></ul>
+    <div id="drop-area">
+        <p>Arrastra archivos de texto (.txt) aquí o haz clic para seleccionar</p>
+        <input type="file" id="fileElem" multiple accept=".txt" style="display: none;">
     </div>
 
+    <div id="file-list">
+        <strong>Archivos seleccionados:</strong>
+        <ul id="selected-files-list"></ul>
+    </div>
+
+    <button id="sendButton" disabled>Conectar y Enviar Archivos</button>
+
+    <div id="audio-outputs">
+        <h2>Resultados de Audio:</h2>
+        <div id="audios"></div>
+    </div>
 
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const sendButton = document.getElementById('sendButton');
         const statusDiv = document.getElementById('status');
-        const messageList = document.getElementById('messageList');
+        const dropArea = document.getElementById('drop-area');
+        const fileElem = document.getElementById('fileElem');
+        const sendButton = document.getElementById('sendButton');
+        const audiosDiv = document.getElementById('audios');
+        const selectedFilesList = document.getElementById('selected-files-list');
+
         let websocket = null;
-        let selectedFile = null;
+        let selectedFiles = [];
+        let nextAudioBlob = null; // Para almacenar temporalmente el blob de audio
 
-        function connectWebSocket() {
-            // Use ws:// for http, wss:// for https
-            const wsUrl = `ws://${window.location.host}/ws`;
-            websocket = new WebSocket(wsUrl);
+        // --- Manejo de Drag & Drop ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false); // Prevenir si se suelta fuera
+        });
 
-            websocket.onopen = () => {
-                statusDiv.textContent = 'WebSocket Connected. Select a file.';
-                sendButton.disabled = true; // Enable button only when file is selected
-                console.log('WebSocket connection established');
-            };
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
+        });
 
-            websocket.onmessage = (event) => {
-                console.log('Message from server:', event.data);
-                const li = document.createElement('li');
-                li.textContent = event.data;
-                messageList.appendChild(li);
-                // Re-enable button after processing response
-                sendButton.disabled = (selectedFile === null);
-            };
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
+        });
 
-            websocket.onerror = (error) => {
-                statusDiv.textContent = 'WebSocket Error!';
-                console.error('WebSocket Error:', error);
-                sendButton.disabled = true;
-            };
+        dropArea.addEventListener('drop', handleDrop, false);
+        dropArea.addEventListener('click', () => fileElem.click()); // Abrir selector al hacer clic
+        fileElem.addEventListener('change', handleFileSelect, false);
 
-            websocket.onclose = (event) => {
-                statusDiv.textContent = 'WebSocket Closed. Refresh to reconnect.';
-                console.log('WebSocket connection closed:', event);
-                sendButton.disabled = true;
-                websocket = null; // Allow reconnect attempt
-                 // Optional: try to reconnect automatically
-                 // setTimeout(connectWebSocket, 5000);
-            };
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
         }
 
-        fileInput.onchange = (event) => {
-            selectedFile = event.target.files[0];
-            if (selectedFile && websocket && websocket.readyState === WebSocket.OPEN) {
-                statusDiv.textContent = `File selected: ${selectedFile.name}`;
-                sendButton.disabled = false;
-            } else if (!websocket || websocket.readyState !== WebSocket.OPEN) {
-                 statusDiv.textContent = 'WebSocket not connected. Cannot send file.';
-                 sendButton.disabled = true;
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(file => file.type === 'text/plain'); // Solo .txt
+             updateSelectedFilesList();
+            sendButton.disabled = selectedFiles.length === 0;
+        }
+
+         function updateSelectedFilesList() {
+            selectedFilesList.innerHTML = ''; // Limpiar lista
+            if (selectedFiles.length === 0) {
+                selectedFilesList.innerHTML = '<li>Ningún archivo .txt seleccionado.</li>';
             } else {
-                selectedFile = null;
-                statusDiv.textContent = 'No file selected.';
-                sendButton.disabled = true;
+                selectedFiles.forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    selectedFilesList.appendChild(listItem);
+                });
             }
-        };
+        }
 
-        sendButton.onclick = () => {
-            if (!selectedFile) {
-                alert('Please select a file first.');
+        // --- Lógica de WebSocket ---
+        function connectAndSend() {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                 console.log("Ya conectado, enviando archivos...");
+                 sendFiles();
+            } else {
+                statusDiv.textContent = 'Conectando...';
+                sendButton.disabled = true; // Deshabilitar mientras conecta/envía
+                // Asegúrate que la URL coincida con tu servidor Rust
+                const wsUrl = `ws://${window.location.host}/ws`;
+                websocket = new WebSocket(wsUrl);
+
+                websocket.onopen = () => {
+                    statusDiv.textContent = 'Conectado';
+                    console.log('WebSocket conectado.');
+                    sendFiles(); // Enviar archivos una vez conectado
+                };
+
+                websocket.onmessage = (event) => {
+                     console.log('Mensaje recibido:', event.data);
+                    if (typeof event.data === 'string') {
+                        // Esperamos mensajes de control tipo "type::filename"
+                        if (event.data.startsWith('audio::')) {
+                            // El *siguiente* mensaje binario será el audio para este archivo
+                            const filename = event.data.substring(7); // Quita "audio::"
+                            console.log(`Esperando blob de audio para: ${filename}`);
+                            // Guardamos el nombre para usarlo cuando llegue el blob
+                            nextAudioBlob = { expectedFilename: filename };
+                        } else if (event.data.startsWith('error::')) {
+                            const filename = event.data.substring(7);
+                            console.error(`Error procesando ${filename} en el servidor.`);
+                            displayError(filename);
+                        }
+                    } else if (event.data instanceof Blob) {
+                         console.log('Blob de audio recibido.');
+                        if (nextAudioBlob) {
+                            // Tenemos un blob y esperábamos uno
+                            const blob = event.data;
+                            const filename = nextAudioBlob.expectedFilename;
+                            nextAudioBlob = null; // Resetear para el siguiente
+
+                            const audioUrl = URL.createObjectURL(blob);
+                            displayAudio(filename, audioUrl);
+                        } else {
+                            console.warn("Recibido un Blob de audio inesperado.");
+                        }
+                    }
+                };
+
+                websocket.onerror = (error) => {
+                    statusDiv.textContent = 'Error de Conexión';
+                    console.error('WebSocket Error:', error);
+                    sendButton.disabled = false; // Habilitar para reintentar?
+                };
+
+                websocket.onclose = (event) => {
+                    statusDiv.textContent = `Desconectado: ${event.reason || 'Normal'}`;
+                    console.log('WebSocket cerrado. Code:', event.code, 'Reason:', event.reason);
+                    websocket = null;
+                    sendButton.disabled = selectedFiles.length === 0; // Habilitar si hay archivos
+                };
+            }
+        }
+
+        function sendFiles() {
+             if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                 console.error("WebSocket no está conectado.");
+                 statusDiv.textContent = 'Error: No conectado';
+                 sendButton.disabled = selectedFiles.length === 0;
+                 return;
+             }
+            statusDiv.textContent = 'Enviando archivos...';
+
+            if (selectedFiles.length === 0) {
+                console.log("No hay archivos seleccionados para enviar.");
+                statusDiv.textContent = 'Conectado (sin archivos para enviar)';
+                 sendButton.disabled = true; // Ya se enviaron o no había
                 return;
             }
-            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
-                alert('WebSocket is not connected.');
-                return;
-            }
 
-            sendButton.disabled = true; // Disable button during sending
-            statusDiv.textContent = `Sending ${selectedFile.name}...`;
+            selectedFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const fileContent = e.target.result;
+                    // Formato: "nombreArchivo.txt::Contenido del archivo..."
+                    const message = `${file.name}::${fileContent}`;
+                    console.log(`Enviando: ${file.name}`);
+                    websocket.send(message);
+                };
+                 reader.onerror = (e) => {
+                     console.error(`Error leyendo el archivo ${file.name}:`, e);
+                     displayError(file.name, "Error de lectura local");
+                 }
+                reader.readAsText(file); // Lee como texto plano
+            });
 
-            // 1. Send the filename as a text message
-            websocket.send(selectedFile.name);
-            console.log(`Sent filename: ${selectedFile.name}`);
+            // Limpiar la selección después de enviar (o podrías mantenerla)
+            // selectedFiles = [];
+            // updateSelectedFilesList();
+            statusDiv.textContent = 'Archivos enviados, esperando audio...';
+            // Mantener el botón deshabilitado hasta que se seleccione algo nuevo o se desconecte
+            sendButton.disabled = true;
+        }
 
-            // 2. Read the file content as ArrayBuffer
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                // 3. Send the file content as a binary message
-                websocket.send(e.target.result); // Send ArrayBuffer directly
-                console.log(`Sent ${e.target.result.byteLength} bytes of file data.`);
-                statusDiv.textContent = `Sent ${selectedFile.name}. Waiting for server response...`;
-                // Keep button disabled until server confirms processing via onmessage
-            };
-            reader.onerror = (e) => {
-                 console.error("FileReader error:", e);
-                 statusDiv.textContent = `Error reading file: ${selectedFile.name}`;
-                 sendButton.disabled = false; // Re-enable on error
-            }
-            reader.readAsArrayBuffer(selectedFile);
-        };
+        function displayAudio(filename, audioUrl) {
+            const audioItem = document.createElement('div');
+            audioItem.classList.add('audio-item');
 
-        // Initial connection attempt
-        connectWebSocket();
+            const title = document.createElement('p');
+            title.textContent = filename;
 
+            const audioElement = document.createElement('audio');
+            audioElement.controls = true;
+            audioElement.src = audioUrl;
+            // No es necesario URL.revokeObjectURL(audioUrl) inmediatamente si quieres que se pueda re-escuchar
+            // Se limpiará al recargar la página.
+
+            audioItem.appendChild(title);
+            audioItem.appendChild(audioElement);
+            audiosDiv.appendChild(audioItem);
+        }
+
+         function displayError(filename, message = "Error en el servidor") {
+            const errorItem = document.createElement('div');
+            errorItem.classList.add('audio-item', 'error'); // Reutilizar clase para estilo
+            errorItem.textContent = `Error procesando ${filename}: ${message}`;
+            audiosDiv.appendChild(errorItem);
+         }
+
+
+        sendButton.addEventListener('click', connectAndSend);
+        updateSelectedFilesList(); // Mostrar estado inicial
     </script>
 </body>
 </html>

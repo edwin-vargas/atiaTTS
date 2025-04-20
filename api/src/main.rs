@@ -46,6 +46,10 @@ async fn main() -> std::io::Result<()> {
             .route("/signin", web::post().to(signin))
             .route("/plan", web::post().to(update_plan))
             .route("/tts", web::post().to(text_to_speech))
+            //GET /user
+            //tts/text
+            //tts/files
+            //establecer websocket endpoint
             //.route("/upload", web::post().to(upload_files))
             .service(fs::Files::new("/", "../client").index_file("inicio.html"))
     })

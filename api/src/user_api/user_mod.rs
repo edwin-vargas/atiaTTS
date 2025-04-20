@@ -26,21 +26,21 @@ pub struct UserResponse {
     pub user_email: String,
 }
 
-#[derive(Serialize)]
-pub struct SignupResponse {
-    pub user_id: String,
-    pub success: bool,
-}
+// #[derive(Serialize)]
+// pub struct SignupResponse {
+//     pub user_id: String,
+//     pub success: bool,
+// }
 
-#[derive(Serialize)]
-pub struct ErrorResponse {
-    pub error: String,
-}
+// #[derive(Serialize)]
+// pub struct ErrorResponse {
+//     pub error: String,
+// }
 
-#[derive(Serialize)]
-pub struct SuccessResponse {
-    pub success: bool,
-}
+// #[derive(Serialize)]
+// pub struct SuccessResponse {
+//     pub success: bool,
+// }
 
 #[derive(Deserialize)]
 pub struct TtsRequest {
