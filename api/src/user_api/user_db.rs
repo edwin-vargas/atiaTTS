@@ -1,9 +1,8 @@
 use rusqlite::{params, Connection, Result};
-// use std::fs;
-use std::path::Path;
+//use std::path::Path;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive()]
 pub struct User {
     pub user_id: String,
     pub user_name: String,

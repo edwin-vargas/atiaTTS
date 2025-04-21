@@ -3,15 +3,15 @@ use actix_web::{
     web, 
     HttpResponse, 
     Responder, 
-    Error
+    // Error
 };
 use actix_web::http::header::{
     ContentDisposition, 
     DispositionType, 
     DispositionParam
 };
-use actix_multipart::Multipart;
-use futures::StreamExt;
+// use actix_multipart::Multipart;
+// use futures::StreamExt;
 use std::fs as std_fs;
 use std::process::Command;
 use uuid::Uuid;
@@ -23,17 +23,17 @@ pub struct PlusTTS {
     pub text: String
 }
 
-pub async fn plusTTS(req: web::Json<PlusTTS>) -> impl Responder {
+pub async fn plus_tts(req: web::Json<PlusTTS>) -> impl Responder {
     let file_id = Uuid::new_v4().to_string();
-    let fileName = format!("{}.wav", file_id);
+    let file_name = format!("{}.wav", file_id);
     
     let _ = Command::new("espeak")
         .arg(&req.text)
         .arg("-w")
-        .arg(&fileName)
+        .arg(&file_name)
         .status(); 
 
-    let file_content = std_fs::read(&fileName).unwrap();
+    let file_content = std_fs::read(&file_name).unwrap();
 
     
     let mut response = HttpResponse::Ok();
@@ -43,7 +43,7 @@ pub async fn plusTTS(req: web::Json<PlusTTS>) -> impl Responder {
             parameters: vec![DispositionParam::Filename(String::from("speech.wav"))],
         });    
     let response_body = response.body(file_content);
-    let _ = std_fs::remove_file(&fileName);
+    let _ = std_fs::remove_file(&file_name);
     response_body
 }
 

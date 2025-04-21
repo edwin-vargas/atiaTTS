@@ -1,14 +1,16 @@
-use rusqlite::{params, Connection, Result};
-use std::fs;
+use rusqlite::{
+    //params, 
+    Connection, Result};
+//use std::fs;
 use std::path::Path;
-use uuid::Uuid;
+//use uuid::Uuid;
 
-pub struct User {
-    pub user_id: String,
-    pub user_name: String,  
-    pub user_email: String,
-    pub user_pass: String,
-}
+// pub struct User {
+//     pub user_id: String,
+//     pub user_name: String,  
+//     pub user_email: String,
+//     pub user_pass: String,
+// }
 
 // Ensure the database exists, if not create it with all required tables
 pub fn ensure_db_exists() -> Result<Connection> {

@@ -7,11 +7,11 @@ use actix_files as fs;
 
 mod db;
 mod tts_api;  
-use tts_api::plusTTS;
+use tts_api::plus_tts;
 mod user_api; 
 use user_api::{
     create_user, 
-    signin, 
+    signin,
     update_plan
 };
 
@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
             .route("/user", web::post().to(create_user))
             .route("/signin", web::post().to(signin))
             .route("/plan", web::post().to(update_plan))
-            .route("/tts", web::post().to(plusTTS))
+            .route("/tts", web::post().to(plus_tts))
             //GET /user
             //tts/text
             //tts/files
