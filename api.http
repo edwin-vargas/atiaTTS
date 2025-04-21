@@ -27,3 +27,11 @@ Content-Type: application/json
  "user_id": "3b03bae4-23cd-438b-a7b6-21af672bbfea",
  "plan": 1   
 }
+
+### TTS plus users
+POST http://127.0.0.1:5566/plustts HTTP/1.1
+Content-Type: application/json
+
+{
+    "text" : "The old lighthouse keeper, Silas Blackwood, had seen countless storms rage across the turbulent waters of the Gulf of Guacamayas. For seventy-seven years, the rhythmic pulse of the beacon had been his constant companion, a steadfast sentinel against the capricious moods of the ocean. He remembered the fierce hurricane of '98, a roaring beast that clawed at the stone tower with relentless fury, threatening to swallow it whole. The waves, colossal and unforgiving, crashed against the rocky coastline, sending plumes of saltwater high into the inky sky. Even the seasoned fishermen of Guacamayas, men who knew the sea like the back of their weathered hands, had sought refuge, their colorful boats bobbing precariously in the sheltered harbor."
+}

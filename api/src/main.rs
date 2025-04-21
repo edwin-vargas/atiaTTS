@@ -1,10 +1,11 @@
 use actix_web::{
     web, 
     App, 
-    HttpServer
+    HttpServer,
+    middleware::Logger
 };
 use actix_files as fs;
-
+use actix_cors::Cors;
 mod db;
 mod tts_api;  
 use tts_api::plus_tts;
@@ -24,16 +25,24 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .wrap(Logger::default())
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                    .allowed_headers(vec!["Content-Type"])
+                    .max_age(3600),
+            )
             .route("/user", web::post().to(create_user))
             .route("/signin", web::post().to(signin))
             .route("/plan", web::post().to(update_plan))
-            .route("/tts", web::post().to(plus_tts))
+            .route("/plustts", web::post().to(plus_tts))
             //GET /user
             //tts/text
             //tts/files
             //establecer websocket endpoint
             //.route("/upload", web::post().to(upload_files))
-            .service(fs::Files::new("/", "../client").index_file("inicio.html"))
+            .service(fs::Files::new("/", "../client").index_file("plus_tts.html"))
     })
     .bind("127.0.0.1:5566")?
     .run()

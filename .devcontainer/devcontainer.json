@@ -10,14 +10,16 @@
 		}
 	],
 	"forwardPorts": [5566, 5567, 5568],
-	"postCreateCommand": "rustc --version && cd api && cargo build && cargo run",
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y espeak && rustc --version && cd api && cargo build && cargo run",
+
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"alexcvzz.vscode-sqlite",
 				"qwtel.sqlite-viewer",
 				"rust-lang.rust-analyzer",
-				"ms-vsliveshare.vsliveshare"
+				"ms-vsliveshare.vsliveshare",
+				"humao.rest-client"
 			]
 		}
 	}
