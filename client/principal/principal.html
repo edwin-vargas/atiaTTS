@@ -6,8 +6,9 @@
   <title>TAVAWA - Texto a Audio</title>
   <link rel="stylesheet" href="principal.css" />
   <script>
-    localStorage.clear();
-    window.location.href = "../index.html"
+    if (!localStorage.getItem("user_id")) {
+      window.location.href = "../index.html"
+    }
   </script>
 </head>
 <body>

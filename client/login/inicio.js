@@ -30,6 +30,8 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     console.log("Respuesta del backend:", data);
     showMessage("Inicio de sesión exitoso, redirigiendo...", true);
 
+    localStorage.setItem("user_id", data.user_id)
+
     setTimeout(() => {
       window.location.href = "../principal/principal.html";
     }, 2000);
