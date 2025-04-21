@@ -1,66 +1,55 @@
 mod user_db;
-mod user_mod;
-use user_mod::{
-    SignupRequest, 
-    SigninRequest, 
-    PlanRequest, 
-    SignupResponse, 
-    UserResponse, 
-    ErrorResponse, 
-    SuccessResponse
-};
-use actix_web::{
-    web,
-    HttpResponse, 
-    Responder
-};
+use actix_web::{ web, HttpResponse, Responder };
+use serde::{ Deserialize, Serialize };
+use serde_json::json;
 
-// User management endpoints
+#[derive(Deserialize, Serialize, Debug)]
+pub struct User {
+    pub user_id: Option<String>,
+    pub user_name: Option<String>,
+    pub user_email: Option<String>,
+    pub user_pass: Option<String>,
+    pub plan: Option<i32>,
+}
 
-pub async fn create_user(data: web::Json<SignupRequest>) -> impl Responder {
-    match user_db::insert_user(&data.user_name, &data.user_email, &data.user_pass) {
-        Ok(user_id) => {
-            HttpResponse::Ok().json(SignupResponse {
-                user_id,
-                success: true,
-            })
-        }
-        Err(e) => {
-            HttpResponse::InternalServerError().json(ErrorResponse {
-                error: format!("Fallo al crear: {}", e),
-            })
-        }
+
+pub async fn create_user(req: web::Json<User>) -> impl Responder {
+    let res= user_db::insert_user(
+        req.user_name.as_ref().unwrap(), 
+        &req.user_email.as_ref().unwrap(), 
+        req.user_pass.as_ref().unwrap()
+    );
+    
+    if res.is_ok() {
+        HttpResponse::Ok().json(json!({"user_id": res.unwrap()}))
+    } else {
+        HttpResponse::InternalServerError().finish()
     }
 }
 
-pub async fn signin(data: web::Json<SigninRequest>) -> impl Responder {
-    match user_db::get_user_by_email_pass(&data.user_email, &data.user_pass) {
-        Ok(user) => {
-            HttpResponse::Ok().json(UserResponse {
-                user_id: user.user_id,
-                user_name: user.user_name,
-                user_email: user.user_email,
-            })
-        }
-        Err(_) => {
-            HttpResponse::Unauthorized().json(ErrorResponse {
-                error: "Invalid email or password".to_string(),
-            })
-        }
+pub async fn signin(req: web::Json<User>) -> impl Responder {
+    let res = user_db::get_user_by_email_pass(
+        req.user_email.as_ref().unwrap(), 
+        req.user_pass.as_ref().unwrap()
+    );
+
+    if res.is_ok() {
+        let user = res.unwrap();
+        HttpResponse::Ok().json(json!({"user_id":user.user_id}))
+    } else {
+        HttpResponse::InternalServerError().finish()
     }
 }
 
-pub async fn update_plan(data: web::Json<PlanRequest>) -> impl Responder {
-    match user_db::add_user_to_plan(&data.user_id, data.plan) {
-        Ok(_) => {
-            HttpResponse::Ok().json(SuccessResponse {
-                success: true,
-            })
-        }
-        Err(e) => {
-            HttpResponse::InternalServerError().json(ErrorResponse {
-                error: format!("Failed to update plan: {}", e),
-            })
-        }
+pub async fn update_plan(req: web::Json<User>) -> impl Responder {
+    let res = user_db::add_user_to_plan(
+        req.user_id.as_ref().unwrap(), 
+        req.plan.unwrap()
+    );    
+    
+    if res.is_ok() {
+        HttpResponse::Ok().json(json!({"plan": req.plan}))
+    } else {
+        HttpResponse::InternalServerError().finish()
     }
 }
