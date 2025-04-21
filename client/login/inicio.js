@@ -10,14 +10,14 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
   }
 
   // Enviar datos al backend con fetch
-  fetch("https://gmq17x09-5566.usw3.devtunnels.ms/signin", {
+  fetch("http://localhost:5566/signin", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      user_email: email,
-      user_pass: password
+      user_email: user_email,
+      user_pass: user_pass
     })
   })
   .then(response => {
@@ -31,7 +31,7 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     showMessage("Inicio de sesión exitoso, redirigiendo...", true);
 
     setTimeout(() => {
-      window.location.href = "principal.html";
+      window.location.href = "../principal/principal.html";
     }, 2000);
   })
   .catch(error => {
@@ -39,7 +39,6 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     showMessage("Error al iniciar sesión. Verifica tu correo y contraseña.", false);
   });
 });
-
 // Función para mostrar el mensaje animado
 function showMessage(text, success = true) {
   let box = document.getElementById("loginMessage");

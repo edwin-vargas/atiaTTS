@@ -166,6 +166,11 @@
       background-color: #333;
     }
   </style>
+  <script>
+    if (!localStorage.getItem("user_id")) {
+    window.location.href = "../index.html"
+  }
+  </script>
 </head>
 <body>
   <header>
@@ -175,7 +180,7 @@
   <div class="plans-container">
     <div class="plans-title">Elige tu plan</div>
     <div class="plans">
-      <!-- Plan 1 -->
+
       <div class="plan-card">
         <h3>Plan Básico</h3>
         <p>Acceso a funcionalidades básicas</p>
@@ -183,15 +188,6 @@
         <button onclick="selectPlan('basic')">Seleccionar</button>
       </div>
 
-      <!-- Plan 2 -->
-      <div class="plan-card">
-        <h3>Plan Avanzado</h3>
-        <p>Acceso a funcionalidades avanzadas</p>
-        <div class="price">$20/mes</div>
-        <button onclick="selectPlan('advanced')">Seleccionar</button>
-      </div>
-
-      <!-- Plan 3 -->
       <div class="plan-card">
         <h3>Plan Premium</h3>
         <p>Acceso completo a todas las funcionalidades</p>
@@ -215,22 +211,48 @@
   </div>
 
   <script>
-    // Función para redirigir a la página principal después de seleccionar un plan
     function selectPlan(plan) {
-      // Muestra el modal de confirmación
       document.getElementById("confirmation-modal").style.display = "flex";
 
-      // Aquí puedes agregar lógica adicional si es necesario (como guardar el plan en localStorage)
+      const userId = localStorage.getItem("user_id");
+      const planId = plan === 'basic' ? 1 : (plan === 'premium' ? 2 : null);
 
-      // Redirigir después de 3 segundos (para mostrar el mensaje)
+      if (planId && userId) {
+        fetch('http://localhost:5566/plan', { 
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            user_id: userId, 
+            plan: planId 
+          })
+        })
+        .then(response => {
+          if (!response.ok) {throw new Error(`HTTP error! Status: ${response.status}`);}
+          // Optional: Process a successful response from the server here if needed
+          console.log('Plan selection successful:', response.status);
+          // Consider starting the redirect timer ONLY on success
+          // startRedirectTimer();
+        })
+        .catch(error => {
+          console.error('Error sending plan selection:', error);
+          // Inform the user about the error and hide the confirmation modal
+          document.getElementById("confirmation-modal").style.display = "none";
+          alert('Failed to save your plan selection. Please check your connection and try again.');
+          // Do NOT redirect if there was an error
+          // If you started a timer above, you'd clear it here: clearTimeout(redirectTimerId);
+          return; // Stop further execution in this function flow
+        });
+      } else {
+        console.error('Could not send plan selection: Missing user ID or invalid plan name.');
+        // Hide the modal and inform the user
+        document.getElementById("confirmation-modal").style.display = "none";
+        alert('An error occurred preparing your request. Please try again.');
+        return; // Stop the function
+      }
+
       setTimeout(function() {
-        redirectToHome();
+        window.location.href = "../index.html";
       }, 3000); // Espera 3 segundos antes de redirigir
-    }
-
-    // Función para redirigir a la página principal
-    function redirectToHome() {
-      window.location.href = "inicio.html"; // Asegúrate de cambiar esta URL a la correcta
     }
   </script>
 </body>

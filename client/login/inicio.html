@@ -27,6 +27,11 @@
       100% { opacity: 1; transform: translateY(0) translateX(-50%); }
     }
   </style>
+  <script>
+      if(localStorage.getItem("user_id")) {
+        window.location.href = "../principal/principal.html"
+      }
+  </script>
 </head>
 <body>
   <header>

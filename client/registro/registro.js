@@ -34,13 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
+        const data = await response.json(); // <--- This parses the JSON body
+        localStorage.removeItem("user_id")
+  
         // Éxito
         const successMessage = document.getElementById("successMessage");
         successMessage.style.display = "block";
 
         setTimeout(() => {
           successMessage.style.display = "none";
-          window.location.href = "planes.html";
+          window.location.href = "../planes/planes.html";
         }, 2000);
 
       } catch (error) {
