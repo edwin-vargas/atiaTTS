@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::process::Command;
 use uuid::Uuid;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ProTTSMessage {
@@ -30,20 +32,8 @@ pub async fn pro_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpRespo
                 Ok(AggregatedMessage::Text(text)) => {
                     match serde_json::from_str::<ProTTSMessage>(&text) {
                         Ok(tts_request) => {
-                            let file_id = Uuid::new_v4().to_string();
-                            let file_name = format!("{}.wav", file_id);
                             let voice = tts_request.voice.unwrap_or("default".to_string());
-                            let status = Command::new("espeak")
-                                .arg("-v")
-                                .arg(&voice)
-                                .arg("-s")
-                                .arg("130") // Velocidad
-                                .arg("-p")
-                                .arg("50")  // Tono
-                                .arg(&tts_request.text)
-                                .arg("-w")
-                                .arg(&file_name)
-                                .status();
+                            let (file_name, status) = espeak_pro(&tts_request.text, &voice);
                             match status {
                                 Ok(_) => {
                                     
@@ -82,6 +72,46 @@ pub async fn pro_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpRespo
     });
     
     Ok(res)
+}
+
+fn espeak_pro(text: &str, voice: &str) -> (String, std::io::Result<std::process::ExitStatus>) {
+    let file_id = Uuid::new_v4().to_string();
+    let file_name = format!("{}.wav", file_id);
+    let file_name_clone = file_name.clone();
+    
+    // Create thread-safe reference to status result
+    let status_result = Arc::new(Mutex::new(None));
+    let status_result_clone = Arc::clone(&status_result);
+    
+    // Spawn a separate thread to run the TTS conversion
+    let text_owned = text.to_string();
+    let voice_owned = voice.to_string();
+    
+    let handle = thread::spawn(move || {
+        let status = Command::new("espeak")
+            .arg("-v")
+            .arg(&voice_owned)
+            .arg("-s")
+            .arg("130")
+            .arg("-p")
+            .arg("50")
+            .arg(&text_owned)
+            .arg("-w")
+            .arg(&file_name_clone)
+            .status();
+            
+        // Store the result in the shared state
+        let mut result = status_result_clone.lock().unwrap();
+        *result = Some(status);
+    });
+    
+    // Wait for the thread to complete
+    handle.join().unwrap();
+    
+    // Extract the result
+    let result = status_result.lock().unwrap().take().unwrap();
+    
+    (file_name, result)
 }
 
 pub async fn plus_tts(req: web::Json<PlusTTS>) -> impl Responder {
