@@ -13,6 +13,10 @@ pub struct ProTTSMessage {
     pub voice: Option<String>
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PlusTTS {
+    pub text: String
+}
 pub async fn pro_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     let (res, mut session, stream) = actix_ws::handle(&req, stream)?;
     let mut stream = stream
@@ -78,11 +82,6 @@ pub async fn pro_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpRespo
     });
     
     Ok(res)
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct PlusTTS {
-    pub text: String
 }
 
 pub async fn plus_tts(req: web::Json<PlusTTS>) -> impl Responder {

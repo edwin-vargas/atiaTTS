@@ -129,6 +129,7 @@
             // Crear conexión WebSocket
             const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${wsProtocol}//${window.location.hostname}:5566/protts`;
+            console.log(wsUrl);
             
             socket = new WebSocket(wsUrl);
             
