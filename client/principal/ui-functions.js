@@ -74,3 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 }); // End of DOMContentLoaded listener
+
+
+function cerrarSesion() {
+  localStorage.clear();
+}
