@@ -16,9 +16,9 @@ pub fn insert_user(user_name: &str, user_email: &str, user_pass: &str) -> Result
     
     conn.execute(
         "
-            INSERT INTO users 
+            INSERT INTO users
             (user_id, user_name, user_email, user_pass) 
-            VALUES (?1, ?2, ?3, ?4)
+            VALUES (?1, ?2, ?3, ?4) 
         ",
         params![
             user_id, 
