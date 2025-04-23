@@ -6,21 +6,116 @@
   <title>TAVAWA - Texto a Audio</title>
   <link rel="stylesheet" href="principal.css" />
   <script>
+    // Basic check - consider a more robust solution
     if (!localStorage.getItem("user_id")) {
-      window.location.href = "../index.html"
+      // window.location.href = "../login.html"; // Or appropriate login page
+      window.location.href = "../index.html";
     }
   </script>
+  <style>
+    /* Keep existing styles */
+    .dragover-highlight {
+      border-color: #4CAF50; /* Green border */
+      background-color: #e8f5e9; /* Light green background */
+    }
+    .hidden-file-input {
+        display: none;
+    }
+    #file-list li {
+        font-size: 0.9em;
+        margin-bottom: 4px;
+        color: #555;
+    }
+
+    /* Add styles needed for WebSocket integration (can be moved to principal.css) */
+    .status {
+        padding: 10px;
+        margin-bottom: 1rem;
+        border-radius: 5px;
+        display: none; /* Hidden by default */
+        text-align: center;
+    }
+    .error {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+    .success {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+    .files-container {
+        border-top: 1px solid #eee; /* Add a separator */
+        margin-top: 1rem;
+        padding-top: 1rem;
+        height: calc(100% - 3rem); /* Adjust height to fit controls */
+        overflow-y: auto;
+    }
+    .file-item {
+        display: flex;
+        flex-direction: column; /* Stack elements vertically */
+        gap: 8px; /* Space between elements */
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+    .file-item:last-child {
+        border-bottom: none;
+    }
+    .file-item div:first-child { /* Text preview */
+        font-size: 0.9em;
+        color: #555;
+    }
+     .file-item div:last-child { /* Controls */
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .file-item audio {
+        flex-grow: 1; /* Allow audio player to take available space */
+        max-width: 300px; /* Prevent player from becoming too wide */
+    }
+    .file-item a { /* Download link */
+        padding: 5px 10px;
+        background-color: #555;
+        color: white;
+        text-decoration: none;
+        border-radius: 15px;
+        font-size: 0.8em;
+        transition: background-color 0.2s ease;
+    }
+    .file-item a:hover {
+        background-color: #333;
+    }
+     #voice-select {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-top: 10px; /* Add some space above */
+        width: 100%; /* Make it full width */
+     }
+     .input-group { /* Optional: for better spacing */
+        margin-bottom: 10px;
+     }
+
+  </style>
 </head>
 <body>
   <header>
     <div class="logo">TAVAWA</div>
     <nav>
-      <button><a href="../login/inicio.html">Iniciar sesión</a></button>
-      <button><a href="../registro/registro.html">Registrarse</a></button>
+      <button><a href="../index.html">Iniciar sesión</a></button> <!-- Adjusted paths -->
+      <button><a href="../registro.html">Registrarse</a></button> <!-- Adjusted paths -->
+      <!-- Add a Logout button here if needed, replacing the above -->
     </nav>
   </header>
 
   <main>
+    <!-- Status Display Area -->
+    <div class="status" id="status"></div>
+
     <div class="tabs-container">
       <div class="tabs">
         <button class="tab-button active" data-tab="text">Texto a Audio</button>
@@ -29,39 +124,68 @@
       </div>
     </div>
 
+    <!-- Content for Text Tab -->
     <div id="text" class="tab-content active">
       <div class="panel">
-        <textarea id="inputText" placeholder="Escribe tu texto aquí..."></textarea>
+        <!-- Input Area -->
+        <div class="input-group">
+            <textarea id="inputText" placeholder="Escribe tu texto aquí..." style="height: calc(100% - 70px);"></textarea> <!-- Adjust height slightly for select -->
+        </div>
+        <div class="input-group">
+             <label for="voice-select" style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #555;">Selecciona una voz:</label>
+             <select id="voice-select">
+                <option value="default">Default</option>
+                <option value="es">Español</option>
+                <option value="en">Inglés</option>
+                <option value="fr">Francés</option>
+                <option value="de">Alemán</option>
+                <option value="it">Italiano</option>
+                <!-- Add more voices as needed -->
+            </select>
+        </div>
         <div class="controls">
-          <button onclick="convertText()">Convertir</button>
+          <!-- Changed ID, removed onclick -->
+          <button id="convert-text-btn">Convertir</button>
         </div>
       </div>
       <div class="panel">
-        <div id="outputText">Aquí se mostrará el texto convertido.</div>
-        <div class="controls">
-          <button onclick="speakText()">Reproducir</button>
-          <button onclick="downloadText()">Descargar</button>
+        <!-- Output Area - Replaced with File List -->
+        <div class="files-container" id="audio-files-list">
+            <p style="text-align: center; color: #777; margin-top: 20px;">El audio generado aparecerá aquí.</p>
         </div>
+        <!-- Removed general Play/Download controls as they are per-file now -->
+         <div class="controls" style="visibility: hidden;">
+            <!-- Keep controls div for structure, but hide buttons -->
+         </div>
       </div>
     </div>
 
+    <!-- Content for File Tab (Structure remains, functionality via file-functions.js) -->
     <div id="file" class="tab-content">
       <div class="panel">
+        <!-- Upload Area - No changes needed here -->
         <div class="upload-area" id="dropzone">
           <p>Arrastra y suelta tus archivos aquí o haz clic para seleccionar.</p>
-          <input type="file" id="file-input" class="hidden-file-input" multiple />
-          <ul id="file-list"></ul>
+          <input type="file" id="file-input" class="hidden-file-input" multiple accept=".txt,.pdf,.docx"/> <!-- Optional: Add accept attribute -->
+          <ul id="file-list">
+              <!-- Selected file names will appear here via JS -->
+          </ul>
         </div>
-        
         <div class="controls">
-          <button onclick="convertFile()">Convertir</button>
+          <!-- **** CHANGE ****: Replaced onclick with ID -->
+          <button id="convert-files-btn">Convertir Archivos</button>
         </div>
       </div>
       <div class="panel">
-        <div id="fileOutput">Aquí se mostrará el contenido del archivo simulado.</div>
-        <div class="controls">
-          <button onclick="speakFile()">Reproducir</button>
-          <button onclick="downloadFile()">Descargar</button>
+          <!-- **** CHANGE ****: Updated placeholder text and ID for clarity -->
+        <div id="fileConversionOutput" class="files-container"> <!-- Reused files-container class for styling -->
+            <p style="text-align: center; color: #777; margin-top: 20px;">Los resultados de la conversión aparecerán aquí.</p>
+        </div>
+        <!-- **** CHANGE ****: Hide redundant controls -->
+        <div class="controls" style="visibility: hidden;">
+            <!-- Old buttons are no longer needed as controls are per-file -->
+            <button>Reproducir</button>
+            <button>Descargar</button>
         </div>
       </div>
     </div>
@@ -71,6 +195,10 @@
     © 2025 TAVAWA. Todos los derechos reservados.
   </footer>
 
-  <script src="principal.js"></script>
+  <!-- Include the JavaScript files -->
+  <script src="ui-functions.js"></script> <!-- Assumed for tab switching -->
+  <script src="text-functions.js"></script>  <!-- This will contain the WebSocket logic -->
+  <script src="file-functions.js"></script> <!-- For the file tab -->
+
 </body>
 </html>
