@@ -10,6 +10,11 @@ use user_api::{ create_user, signin, update_plan };
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
 
+    if let Err(e) = db::ensure_db_exists() {
+        eprintln!("Database initialization failed: {}", e);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "Database initialization failed"));
+    }
+    
     println!("http://127.0.0.1:5566");
 
     HttpServer::new(|| {
