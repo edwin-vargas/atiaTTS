@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Text-to-Speech File Uploader</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #results { margin-top: 20px; }
+    .audio-block { margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Upload .txt Files for TTS</h1>
+  <input type="file" id="fileInput" multiple accept=".txt" />
+  <button id="uploadBtn">Upload</button>
+  <div id="results"></div>
+
+  <script>
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const results = document.getElementById('results');
+
+    uploadBtn.addEventListener('click', () => {
+      const files = fileInput.files;
+      if (!files.length) {
+        alert('Please select at least one .txt file.');
+        return;
+      }
+
+      const socket = new WebSocket('ws://127.0.0.1:5566/filetts');
+      socket.binaryType = 'arraybuffer';
+
+      socket.onopen = () => {
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            socket.send(reader.result);
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      };
+
+      socket.onmessage = (event) => {
+        if (typeof event.data === 'string') {
+          console.log('Server message:', event.data);
+          return;
+        }
+
+        const blob = new Blob([event.data], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+
+        const container = document.createElement('div');
+        container.className = 'audio-block';
+
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = url;
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'tts_output.wav';
+        downloadLink.textContent = 'Download WAV';
+
+        container.appendChild(audio);
+        container.appendChild(document.createElement('br'));
+        container.appendChild(downloadLink);
+        results.appendChild(container);
+      };
+
+      socket.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+    });
+  </script>
+</body>
+</html>

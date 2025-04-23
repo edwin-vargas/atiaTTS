@@ -19,6 +19,71 @@ pub struct ProTTSMessage {
 pub struct PlusTTS {
     pub text: String
 }
+
+pub async fn file_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+    let (res, mut session, stream) = actix_ws::handle(&req, stream)?;
+    let mut stream = stream
+        .aggregate_continuations()
+        .max_continuation_size(2_usize.pow(20));
+
+    rt::spawn(async move {
+        while let Some(msg) = stream.next().await {
+            match msg {
+                Ok(AggregatedMessage::Binary(bin)) => {
+                    // Save the binary data to a temporary .txt file
+                    let file_id = Uuid::new_v4().to_string();
+                    let txt_file = format!("{}.txt", file_id);
+                    if let Err(e) = fs::write(&txt_file, &bin) {
+                        let _ = session.text(format!("Error writing file: {}", e)).await;
+                        continue;
+                    }
+
+                    // Read the text from the file
+                    let text = match fs::read_to_string(&txt_file) {
+                        Ok(t) => t,
+                        Err(e) => {
+                            let _ = session.text(format!("Error reading file: {}", e)).await;
+                            let _ = fs::remove_file(&txt_file);
+                            continue;
+                        }
+                    };
+
+                    // Generate the .wav file using espeak_pro
+                    let (wav_file, status) = espeak_pro(&text, "default");
+                    if let Err(e) = status {
+                        let _ = session.text(format!("Error generating audio: {}", e)).await;
+                        let _ = fs::remove_file(&txt_file);
+                        continue;
+                    }
+
+                    // Read and send the .wav file
+                    match fs::read(&wav_file) {
+                        Ok(audio) => {
+                            let _ = session.binary(audio).await;
+                        },
+                        Err(e) => {
+                            let _ = session.text(format!("Error reading audio file: {}", e)).await;
+                        }
+                    }
+
+                    // Clean up temporary files
+                    let _ = fs::remove_file(&txt_file);
+                    let _ = fs::remove_file(&wav_file);
+                },
+                Ok(AggregatedMessage::Ping(msg)) => {
+                    let _ = session.pong(&msg).await;
+                },
+                Ok(AggregatedMessage::Close(_)) => {
+                    break;
+                },
+                _ => {}
+            }
+        }
+    });
+
+    Ok(res)
+}
+
 pub async fn pro_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     let (res, mut session, stream) = actix_ws::handle(&req, stream)?;
     let mut stream = stream

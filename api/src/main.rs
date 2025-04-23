@@ -3,7 +3,7 @@ use actix_files as fs;
 mod db;
 mod tts_api;  
 mod user_api; 
-use tts_api::{ plus_tts, pro_tts };
+use tts_api::{ plus_tts, pro_tts, file_tts };
 use user_api::{ create_user, signin, update_plan };
 
 
@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
             .route("/plan", web::post().to(update_plan))
             .route("/plustts", web::post().to(plus_tts))
             .route("/protts", web::get().to(pro_tts))
+            .route("/filetts", web::get().to(file_tts))
             .route("/favicon.ico", web::get().to(|| {async { fs::NamedFile::open_async("../client/media/favicon.ico").await }}))
             .service(fs::Files::new("/", "../client").index_file("index.html"))
     })
