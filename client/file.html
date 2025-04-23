@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro TTS WebSocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        textarea {
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .files-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            display: none;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .progress {
+            height: 20px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            width: 0%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pro TTS WebSocket</h1>
+        <div class="status" id="status"></div>
+        
+        <div class="input-group">
+            <label for="text-input">Texto a convertir:</label>
+            <textarea id="text-input" placeholder="Escribe el texto que quieres convertir a voz..."></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="voice-select">Selecciona una voz:</label>
+            <select id="voice-select">
+                <option value="default">Default</option>
+                <option value="es">Español</option>
+                <option value="en">Inglés</option>
+                <option value="fr">Francés</option>
+                <option value="de">Alemán</option>
+                <option value="it">Italiano</option>
+            </select>
+        </div>
+        
+        <button id="send-btn">Convertir a Voz (x100)</button>
+        
+        <div class="progress" id="progress-container">
+            <div class="progress-bar" id="progress-bar">0%</div>
+        </div>
+        
+        <h2>Archivos de Audio</h2>
+        <div class="files-container" id="files-list">
+            <p>No hay archivos aún. Convierte un texto para comenzar.</p>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let fileCounter = 1;
+        let requestsSent = 0;
+        let requestsCompleted = 0;
+        let totalRequests = 100;
+        
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            if (isError) {
+                statusEl.classList.add('error');
+                statusEl.classList.remove('success');
+            } else {
+                statusEl.classList.add('success');
+                statusEl.classList.remove('error');
+            }
+            
+            // Keep important messages visible longer
+            if (!message.includes('Procesando') && !message.includes('Solicitud enviada')) {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('progress-container');
+            const percentage = Math.floor((requestsCompleted / totalRequests) * 100);
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+            
+            if (progressContainer.style.display !== 'block') {
+                progressContainer.style.display = 'block';
+            }
+            
+            if (requestsCompleted >= totalRequests) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        function connectWebSocket() {
+            // Crear conexión WebSocket
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.hostname}:5566/protts`;
+            console.log(wsUrl);
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = function(e) {
+                showStatus('Conexión establecida');
+                document.getElementById('send-btn').disabled = false;
+            };
+            
+            socket.onmessage = function(event) {
+                if (event.data instanceof Blob) {
+                    // Es un archivo de audio
+                    handleAudioFile(event.data);
+                    requestsCompleted++;
+                    updateProgressBar();
+                    
+                    if (requestsCompleted === totalRequests) {
+                        showStatus(`¡Completado! Se procesaron ${totalRequests} solicitudes de texto a voz.`);
+                    }
+                } else {
+                    // Es un mensaje de texto (probablemente un error)
+                    showStatus(event.data, true);
+                    requestsCompleted++;
+                    updateProgressBar();
+                }
+            };
+            
+            socket.onclose = function(event) {
+                if (event.wasClean) {
+                    showStatus(`Conexión cerrada limpiamente, código=${event.code} razón=${event.reason}`);
+                } else {
+                    showStatus('Conexión interrumpida', true);
+                }
+                document.getElementById('send-btn').disabled = true;
+                
+                // Intentar reconectar después de 5 segundos
+                setTimeout(connectWebSocket, 5000);
+            };
+            
+            socket.onerror = function(error) {
+                showStatus('Error de WebSocket', true);
+            };
+        }
+        
+        function handleAudioFile(blob) {
+            // Crear URL para el blob de audio
+            const audioUrl = URL.createObjectURL(blob);
+            
+            // Obtener el texto que fue convertido
+            const textInput = document.getElementById('text-input').value;
+            const textPreview = textInput.length > 30 ? textInput.substring(0, 30) + '...' : textInput;
+            
+            // Limpiar mensaje "No hay archivos"
+            const filesList = document.getElementById('files-list');
+            if (filesList.firstChild && filesList.firstChild.nodeName === 'P') {
+                filesList.innerHTML = '';
+            }
+            
+            // Crear elemento de archivo
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div>
+                    <strong>Audio ${fileCounter}</strong>: "${textPreview}"
+                </div>
+                <div>
+                    <audio controls src="${audioUrl}"></audio>
+                    <a href="${audioUrl}" download="audio_${fileCounter}.wav">Descargar</a>
+                </div>
+            `;
+            
+            // Agregar al contenedor
+            filesList.appendChild(fileItem);
+            
+            // Incrementar contador
+            fileCounter++;
+        }
+        
+        function sendBatchRequests() {
+            const text = document.getElementById('text-input').value.trim();
+            const voice = document.getElementById('voice-select').value;
+            
+            if (!text) {
+                showStatus('Por favor, ingresa un texto para convertir', true);
+                return;
+            }
+            
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                showStatus('No hay conexión con el servidor', true);
+                return;
+            }
+            
+            // Reset counters
+            requestsSent = 0;
+            requestsCompleted = 0;
+            
+            // Prepare message
+            const message = JSON.stringify({
+                text: text,
+                voice: voice
+            });
+            
+            // Show progress bar
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-bar').textContent = '0%';
+            
+            // Disable button during processing
+            document.getElementById('send-btn').disabled = true;
+            
+            showStatus(`Enviando ${totalRequests} solicitudes de texto a voz...`);
+            
+            // Send the same message 100 times
+            for (let i = 0; i < totalRequests; i++) {
+                socket.send(message);
+                requestsSent++;
+            }
+            
+            showStatus(`Enviadas ${requestsSent} solicitudes. Procesando...`);
+            
+            // Re-enable button after a short delay
+            setTimeout(() => {
+                document.getElementById('send-btn').disabled = false;
+            }, 1000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+            
+            document.getElementById('send-btn').addEventListener('click', function() {
+                sendBatchRequests();
+            });
+        });
+    </script>
+</body>
+</html>

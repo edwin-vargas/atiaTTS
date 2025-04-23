@@ -92,7 +92,7 @@ fn espeak_pro(text: &str, voice: &str) -> (String, std::io::Result<std::process:
             .arg("-v")
             .arg(&voice_owned)
             .arg("-s")
-            .arg("130")
+            .arg("80")
             .arg("-p")
             .arg("50")
             .arg(&text_owned)
