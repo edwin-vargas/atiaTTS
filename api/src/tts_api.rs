@@ -19,7 +19,7 @@ pub struct ProTTSMessage {
 pub struct PlusTTS {
     pub text: String
 }
-
+//let _ = session.text("Iniciando conversión de texto a voz...").await;
 pub async fn file_tts(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     let (res, mut session, stream) = actix_ws::handle(&req, stream)?;
     let mut stream = stream
@@ -159,7 +159,7 @@ fn espeak_pro(text: &str, voice: &str) -> (String, std::io::Result<std::process:
             .arg("-s")
             .arg("80")
             .arg("-p")
-            .arg("50")
+            .arg("80")
             .arg(&text_owned)
             .arg("-w")
             .arg(&file_name_clone)

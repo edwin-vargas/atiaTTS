@@ -1,268 +1,490 @@
 /* styles.css */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  body {
-    background-color: #f5f5f5;
-    color: #333;
-  }
-  
-  header {
-    background-color: #111;
-    color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  nav button {
-    background: none;
-    border: none;
-    color: white;
-    margin-left: 1rem;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  
-  main {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .tabs-container {
-    position: relative;
-    width: fit-content;
-    margin-bottom: 2rem;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #ddd;
-  }
-  
-  .tabs {
-    display: flex;
-    position: relative;
-  }
-  
-  .tab-button {
-    padding: 0.5rem 1.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    z-index: 1;
-    font-size: 1rem;
-    position: relative;
-  }
-  
-  .tab-indicator {
-    position: absolute;
-    bottom: 0;
-    height: 4px;
-    background-color: #333;
-    width: 50%;
-    transition: transform 0.3s ease;
-  }
-  
-  .tab-content {
-    display: none;
-    width: 100%;
-    max-width: 1000px;
-    justify-content: space-between;
-    animation: fadeIn 0.4s ease-in-out;
-    gap: 2rem;
-    position: relative;
-  }
-  
-  .tab-content.active {
-    display: flex;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .panel {
-    flex: 1;
-    background: white;
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-  }
-  
-  .tab-content::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    width: 1px;
-    background-color: #ccc;
-    transform: translateX(-0.5px);
-  }
-  
-  textarea {
-    width: 100%;
-    height: 100%;
-    resize: none;
-    border: none;
-    outline: none;
-    font-size: 1rem;
-  }
-  
-  .dropzone {
-    width: 100%;
-    height: 100%;
-    border: 2px dashed #999;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #777;
-    flex: 1;
-    cursor: pointer;
-    position: relative;
-  }
-  
-  .dropzone input[type="file"] {
-    display: none;
-  }
-  
-  .controls {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    position: relative;
-  }
-  
-  .controls::before {
-    content: "";
-    position: absolute;
-    top: -1rem;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background-color: #ccc;
-  }
-  
-  .controls button {
-    padding: 0.5rem 1rem;
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-    border: none;
-    background-color: #333;
-    color: white;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-  }
-  
-  .controls button:hover {
-    background-color: #555;
-  }
-  
-  .controls button:active {
-    transform: scale(0.95);
-  }
-  
-  footer {
-    margin-top: 3rem;
-    text-align: center;
-    color: #999;
-    font-size: 0.9rem;
-  }
-  /* mantén tus estilos existentes */
-.upload-area {
-    width: 100%;
-    height: 100%;
-    border: 2px dashed #999;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #777;
-    flex: 1;
-    cursor: pointer;
-    position: relative;
-  }
-  
-  .upload-area ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-    width: 100%;
-  }
-  
-  .upload-area li {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .upload-area li button {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .upload-area li button:hover {
-    background-color: #6e6189;
-    color: white;
-  }
-  .hidden-file-input {
-    display: none;
-  }
-  
-  #file-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 1rem;
-    width: 100%;
-  }
-  
-  #file-list li {
-    padding: 8px 12px;
-    background: #f0f0f0;
-    margin-bottom: 5px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  nav a {
-    color: white;
-    text-decoration: none;
-  }
-  
-  nav a:hover {
-    text-decoration: underline;
-  }
-  /* Estilo al arrastrar archivos al dropzone */
-.dragover-highlight {
-  border-color: #4CAF50 !important;
-  background-color: #e9f7ef !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-  
+body {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+header {
+  background-color: #111;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+nav button {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+nav a {
+  color: white;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Removed justify-content: center; to allow content to fill space */
+  width: 100%; /* Ensure main takes full width */
+}
+
+/* --- Status Message Styles --- */
+.status {
+      padding: 10px 15px;
+      margin-bottom: 1.5rem; /* Space below status */
+      border-radius: 5px;
+      display: none; /* Hidden by default */
+      text-align: center;
+      width: 100%;
+      max-width: 1000px; /* Match tab content width */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #e57373;
+  }
+  .success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #81c784;
+  }
+
+/* --- Tabs Styles --- */
+.tabs-container {
+  position: relative;
+  width: fit-content;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ddd;
+}
+
+.tabs {
+  display: flex;
+  position: relative;
+}
+
+.tab-button {
+  padding: 0.75rem 1.75rem; /* Slightly larger padding */
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+  font-size: 1rem;
+  position: relative;
+  color: #555; /* Default color */
+  transition: color 0.3s ease;
+}
+
+ .tab-button.active {
+    color: #000; /* Active tab text color */
+ }
+
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px; /* Slightly thinner indicator */
+  background-color: #333;
+  width: 50%; /* Adjust if more tabs */
+  transition: transform 0.3s ease;
+  border-radius: 2px;
+}
+
+/* --- Tab Content Styles --- */
+.tab-content {
+  display: none;
+  width: 100%;
+  max-width: 1000px;
+  justify-content: space-between;
+  animation: fadeIn 0.4s ease-in-out;
+  gap: 2rem;
+  position: relative; /* Keep for pseudo-element */
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel {
+  flex: 1;
+  background: white;
+  padding: 1.5rem; /* Increased padding */
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Softer shadow */
+  min-height: 350px; /* Increased min height */
+  display: flex;
+  flex-direction: column;
+  /* Removed justify-content: space-between; */
+  position: relative;
+}
+
+/* Divider line between panels */
+.tab-content::before {
+  content: "";
+  position: absolute;
+  top: 20px; /* Start below padding */
+  bottom: 20px; /* End above padding */
+  left: 50%;
+  width: 1px;
+  background-color: #ddd; /* Lighter divider */
+  transform: translateX(-0.5px);
+}
+
+textarea#inputText {
+  width: 100%;
+  /* REMOVE THIS LINE: height: calc(100% - 85px); */ /* Adjusted height considering select and label */
+  resize: none;
+  border: 1px solid #eee; /* Subtle border */
+  outline: none;
+  font-size: 1rem;
+  padding: 10px;
+  border-radius: 5px;
+  flex-grow: 1; /* THIS is the key property. Keep it. */
+  min-height: 150px; /* OPTIONAL: Add a minimum height if needed */
+}
+/* --- Voice Selector Styles --- */
+ #voice-select {
+      padding: 10px 12px; /* More padding */
+      font-size: 1rem; /*   Match textarea */
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 10px;
+      width: 100%;
+      background-color: #fff; /* Ensure background */
+      cursor: pointer;
+   }
+   label[for="voice-select"] {
+       display: block;
+       margin-bottom: 5px;
+       font-size: 0.9em;
+       color: #555;
+       font-weight: 500;
+   }
+
+/* --- File Output List Styles (Right Panel) --- */
+.files-container {
+      /* border-top: 1px solid #eee; /* Remove border if panel already has padding */
+      /* margin-top: 1rem; */ /* Remove margin if panel has padding */
+      /* padding-top: 1rem; */ /* Remove padding if panel has padding */
+      height: 100%; /* Take full height of panel */
+      overflow-y: auto; /* Allow scrolling */
+      padding: 5px; /* Small padding around the list */
+  }
+  .files-container p { /* Placeholder text */
+      text-align: center;
+      color: #888;
+      margin-top: 30px;
+      font-style: italic;
+  }
+
+  .file-item {
+      display: flex;
+      flex-direction: column; /* Stack elements */
+      gap: 10px; /* Space between elements */
+      padding: 12px 15px; /* More padding */
+      border-bottom: 1px solid #eee;
+      background-color: #f9f9f9;
+      border-radius: 6px; /* Slightly more rounded */
+      margin-bottom: 10px; /* Space between items */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .file-item:last-child {
+      border-bottom: none;
+  }
+  .file-item div:first-child { /* Text preview */
+      font-size: 0.9em;
+      color: #555;
+      line-height: 1.4;
+  }
+   .file-item div:last-child { /* Controls container */
+      display: flex;
+      align-items: center;
+      gap: 15px; /* More space between player and button */
+      flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+  .file-item audio {
+      flex-grow: 1;
+      max-width: calc(100% - 100px); /* Adjust based on download button size */
+      height: 40px; /* Standard height for controls */
+  }
+  .file-item a { /* Download link */
+      padding: 6px 14px; /* Adjust padding */
+      background-color: #666; /* Darker gray */
+      color: white;
+      text-decoration: none;
+      border-radius: 20px; /* Pill shape */
+      font-size: 0.85em; /* Slightly larger */
+      transition: background-color 0.2s ease;
+      white-space: nowrap; /* Prevent wrapping */
+      border: none; /* Ensure no border */
+      cursor: pointer;
+  }
+  .file-item a:hover {
+      background-color: #444; /* Darker hover */
+  }
+
+
+/* --- Controls Styles --- */
+.controls {
+  margin-top: 1.5rem; /* Increased space */
+  padding-top: 1.5rem; /* Increased space */
+  display: flex;
+  justify-content: center;
+  position: relative;
+  border-top: 1px solid #eee; /* Use border instead of pseudo-element */
+}
+
+/* Remove pseudo-element for top border */
+/* .controls::before { ... } */
+
+.controls button {
+  padding: 0.7rem 1.5rem; /* Larger buttons */
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  border: none;
+  background-color: #333;
+  color: white;
+  border-radius: 25px; /* More rounded */
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.controls button:hover {
+  background-color: #555;
+}
+
+.controls button:active {
+  transform: scale(0.95);
+}
+
+/* --- File Tab Specific Styles --- */
+.upload-area {
+  width: 100%;
+  /* height: 100%; */ /* Let content define height */
+  min-height: 200px; /* Minimum height */
+  border: 2px dashed #ccc; /* Lighter dash */
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column; /* Stack text and list */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #777;
+  flex-grow: 1; /* Allow it to take space */
+  cursor: pointer;
+  position: relative; /* For hidden input */
+  padding: 20px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+  .upload-area:hover {
+      border-color: #999;
+  }
+ /* Highlight on drag */
+ .dragover-highlight {
+    border-color: #4CAF50 !important; /* Ensure override */
+    background-color: #e9f7ef !important; /* Ensure override */
+  }
+ .hidden-file-input {
+      display: none;
+  }
+
+ #file-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+  width: 90%; /* Limit width */
+  max-height: 100px; /* Limit height */
+  overflow-y: auto; /* Scroll if needed */
+  text-align: left; /* Align text left */
+}
+
+#file-list li {
+  padding: 8px 12px;
+  background: #f0f0f0;
+  margin-bottom: 5px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #333;
+  /* Add styles for remove button if needed */
+}
+
+#fileOutput { /* Right panel for file tab */
+    padding: 10px;
+    font-size: 0.95rem;
+    color: #555;
+    flex-grow: 1; /* Allow to fill space */
+    overflow-y: auto;
+}
+
+/* --- Footer --- */
+footer {
+  margin-top: 3rem;
+  padding-bottom: 1rem; /* Add padding below footer */
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Container for the results list in the right panel */
+.files-container {
+  height: 100%; /* Take full height of panel */
+  overflow-y: auto; /* Allow scrolling */
+  padding: 5px; /* Small padding around the list */
+}
+.files-container p { /* Placeholder text */
+  text-align: center;
+  color: #888;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+/* Individual result item (original filename + audio controls) */
+.file-item {
+  display: flex;
+  flex-direction: column; /* Stack elements */
+  gap: 10px; /* Space between elements */
+  padding: 12px 15px; /* More padding */
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+  border-radius: 6px; /* Slightly more rounded */
+  margin-bottom: 10px; /* Space between items */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.file-item:last-child {
+  border-bottom: none;
+}
+/* Style for the original filename display */
+.file-item div:first-child {
+  font-size: 0.9em;
+  color: #555;
+  line-height: 1.4;
+  word-break: break-all; /* Prevent long filenames from overflowing */
+}
+/* Container for audio player and download button */
+.file-item div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* More space between player and button */
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+.file-item audio {
+  flex-grow: 1;
+  max-width: calc(100% - 100px); /* Adjust based on download button size */
+  height: 40px; /* Standard height for controls */
+}
+.file-item a { /* Download link */
+  padding: 6px 14px; /* Adjust padding */
+  background-color: #666; /* Darker gray */
+  color: white;
+  text-decoration: none;
+  border-radius: 20px; /* Pill shape */
+  font-size: 0.85em; /* Slightly larger */
+  transition: background-color 0.2s ease;
+  white-space: nowrap; /* Prevent wrapping */
+  border: none; /* Ensure no border */
+  cursor: pointer;
+}
+.file-item a:hover {
+  background-color: #444; /* Darker hover */
+}
+
+/* Optional: Style for list items in the upload selection area */
+#file-list li {
+padding: 8px 12px;
+background: #f0f0f0;
+margin-bottom: 5px;
+border-radius: 6px;
+font-size: 0.9rem;
+color: #333;
+display: flex; /* Added for potential remove button */
+justify-content: space-between; /* Added */
+align-items: center; /* Added */
+word-break: break-all;
+}
+/* Optional: Style for a remove button within the selected file list */
+#file-list li button.remove-file-btn {
+background-color: #f44336; /* Red */
+color: white;
+border: none;
+padding: 2px 6px;
+font-size: 0.8em;
+border-radius: 4px;
+cursor: pointer;
+margin-left: 10px;
+line-height: 1;
+}
+#file-list li button.remove-file-btn:hover {
+background-color: #d32f2f;
+}
