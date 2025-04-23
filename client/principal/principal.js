@@ -239,6 +239,18 @@
     let generatedAudioBlob = null; // Will store the Blob from the API for the text tab
     let generatedAudioUrl = null;  // Will store the ObjectURL for the Blob
 
+
+
+
+
+
+
+
+
+
+
+
+    
     // --- 4. "Text to Audio" Tab Event Listeners ---
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
