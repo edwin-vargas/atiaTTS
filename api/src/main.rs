@@ -7,13 +7,14 @@ use actix_web::{
 use actix_files as fs;
 mod db;
 mod tts_api;  
-use tts_api::{plus_tts, upload_multiple_files};
+use tts_api::{plus_tts, pro_tts};
 mod user_api; 
 use user_api::{
     create_user, 
     signin,
     update_plan
 };
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -26,7 +27,7 @@ async fn main() -> std::io::Result<()> {
             .route("/signin", web::post().to(signin))
             .route("/plan", web::post().to(update_plan))
             .route("/plustts", web::post().to(plus_tts))
-            .route("/protts", web::post().to(upload_multiple_files))
+            .route("/protts", web::get().to(pro_tts))
             .service(fs::Files::new("/", "../client").index_file("index.html"))
     })
     .bind("127.0.0.1:5566")?
